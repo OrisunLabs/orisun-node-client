@@ -92,6 +92,28 @@ function deserialize_orisun_GetEventsResponse(buffer_arg) {
   return eventstore_pb.GetEventsResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_orisun_GetIndexRequest(arg) {
+  if (!(arg instanceof eventstore_pb.GetIndexRequest)) {
+    throw new Error('Expected argument of type orisun.GetIndexRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_GetIndexRequest(buffer_arg) {
+  return eventstore_pb.GetIndexRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_orisun_GetIndexResponse(arg) {
+  if (!(arg instanceof eventstore_pb.GetIndexResponse)) {
+    throw new Error('Expected argument of type orisun.GetIndexResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_GetIndexResponse(buffer_arg) {
+  return eventstore_pb.GetIndexResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_orisun_GetLatestByCriteriaRequest(arg) {
   if (!(arg instanceof eventstore_pb.GetLatestByCriteriaRequest)) {
     throw new Error('Expected argument of type orisun.GetLatestByCriteriaRequest');
@@ -134,6 +156,28 @@ function serialize_orisun_GetServerInfoResponse(arg) {
 
 function deserialize_orisun_GetServerInfoResponse(buffer_arg) {
   return eventstore_pb.GetServerInfoResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_orisun_ListIndexesRequest(arg) {
+  if (!(arg instanceof eventstore_pb.ListIndexesRequest)) {
+    throw new Error('Expected argument of type orisun.ListIndexesRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_ListIndexesRequest(buffer_arg) {
+  return eventstore_pb.ListIndexesRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_orisun_ListIndexesResponse(arg) {
+  if (!(arg instanceof eventstore_pb.ListIndexesResponse)) {
+    throw new Error('Expected argument of type orisun.ListIndexesResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_ListIndexesResponse(buffer_arg) {
+  return eventstore_pb.ListIndexesResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_orisun_PingRequest(arg) {
@@ -269,6 +313,28 @@ var EventStoreService = exports['orisun.EventStore'] = {
     requestDeserialize: deserialize_orisun_DropIndexRequest,
     responseSerialize: serialize_orisun_DropIndexResponse,
     responseDeserialize: deserialize_orisun_DropIndexResponse,
+  },
+  listIndexes: {
+    path: '/orisun.EventStore/ListIndexes',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventstore_pb.ListIndexesRequest,
+    responseType: eventstore_pb.ListIndexesResponse,
+    requestSerialize: serialize_orisun_ListIndexesRequest,
+    requestDeserialize: deserialize_orisun_ListIndexesRequest,
+    responseSerialize: serialize_orisun_ListIndexesResponse,
+    responseDeserialize: deserialize_orisun_ListIndexesResponse,
+  },
+  getIndex: {
+    path: '/orisun.EventStore/GetIndex',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventstore_pb.GetIndexRequest,
+    responseType: eventstore_pb.GetIndexResponse,
+    requestSerialize: serialize_orisun_GetIndexRequest,
+    requestDeserialize: deserialize_orisun_GetIndexRequest,
+    responseSerialize: serialize_orisun_GetIndexResponse,
+    responseDeserialize: deserialize_orisun_GetIndexResponse,
   },
 };
 

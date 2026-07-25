@@ -657,6 +657,130 @@ export namespace DropIndexResponse {
     }
 }
 
+export class IndexDefinition extends jspb.Message {
+    getName(): string;
+    setName(value: string): IndexDefinition;
+    clearFieldsList(): void;
+    getFieldsList(): Array<IndexField>;
+    setFieldsList(value: Array<IndexField>): IndexDefinition;
+    addFields(value?: IndexField, index?: number): IndexField;
+    clearConditionsList(): void;
+    getConditionsList(): Array<IndexCondition>;
+    setConditionsList(value: Array<IndexCondition>): IndexDefinition;
+    addConditions(value?: IndexCondition, index?: number): IndexCondition;
+    getConditionCombinator(): ConditionCombinator;
+    setConditionCombinator(value: ConditionCombinator): IndexDefinition;
+    getState(): IndexState;
+    setState(value: IndexState): IndexDefinition;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): IndexDefinition.AsObject;
+    static toObject(includeInstance: boolean, msg: IndexDefinition): IndexDefinition.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: IndexDefinition, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): IndexDefinition;
+    static deserializeBinaryFromReader(message: IndexDefinition, reader: jspb.BinaryReader): IndexDefinition;
+}
+
+export namespace IndexDefinition {
+    export type AsObject = {
+        name: string,
+        fieldsList: Array<IndexField.AsObject>,
+        conditionsList: Array<IndexCondition.AsObject>,
+        conditionCombinator: ConditionCombinator,
+        state: IndexState,
+    }
+}
+
+export class ListIndexesRequest extends jspb.Message {
+    getBoundary(): string;
+    setBoundary(value: string): ListIndexesRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ListIndexesRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: ListIndexesRequest): ListIndexesRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ListIndexesRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ListIndexesRequest;
+    static deserializeBinaryFromReader(message: ListIndexesRequest, reader: jspb.BinaryReader): ListIndexesRequest;
+}
+
+export namespace ListIndexesRequest {
+    export type AsObject = {
+        boundary: string,
+    }
+}
+
+export class ListIndexesResponse extends jspb.Message {
+    clearIndexesList(): void;
+    getIndexesList(): Array<IndexDefinition>;
+    setIndexesList(value: Array<IndexDefinition>): ListIndexesResponse;
+    addIndexes(value?: IndexDefinition, index?: number): IndexDefinition;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ListIndexesResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: ListIndexesResponse): ListIndexesResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ListIndexesResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ListIndexesResponse;
+    static deserializeBinaryFromReader(message: ListIndexesResponse, reader: jspb.BinaryReader): ListIndexesResponse;
+}
+
+export namespace ListIndexesResponse {
+    export type AsObject = {
+        indexesList: Array<IndexDefinition.AsObject>,
+    }
+}
+
+export class GetIndexRequest extends jspb.Message {
+    getBoundary(): string;
+    setBoundary(value: string): GetIndexRequest;
+    getName(): string;
+    setName(value: string): GetIndexRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetIndexRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetIndexRequest): GetIndexRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetIndexRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetIndexRequest;
+    static deserializeBinaryFromReader(message: GetIndexRequest, reader: jspb.BinaryReader): GetIndexRequest;
+}
+
+export namespace GetIndexRequest {
+    export type AsObject = {
+        boundary: string,
+        name: string,
+    }
+}
+
+export class GetIndexResponse extends jspb.Message {
+
+    hasIndex(): boolean;
+    clearIndex(): void;
+    getIndex(): IndexDefinition | undefined;
+    setIndex(value?: IndexDefinition): GetIndexResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetIndexResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetIndexResponse): GetIndexResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetIndexResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetIndexResponse;
+    static deserializeBinaryFromReader(message: GetIndexResponse, reader: jspb.BinaryReader): GetIndexResponse;
+}
+
+export namespace GetIndexResponse {
+    export type AsObject = {
+        index?: IndexDefinition.AsObject,
+    }
+}
+
 export enum Direction {
     ASC = 0,
     DESC = 1,
@@ -688,4 +812,10 @@ export enum ValueType {
 export enum ConditionCombinator {
     AND = 0,
     OR = 1,
+}
+
+export enum IndexState {
+    INDEX_STATE_UNSPECIFIED = 0,
+    INDEX_STATE_BUILDING = 1,
+    INDEX_STATE_READY = 2,
 }

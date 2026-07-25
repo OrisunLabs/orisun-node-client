@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventStoreClient = exports.ServerCapability = exports.StorageBackend = exports.ConditionCombinator = exports.ValueType = void 0;
+exports.EventStoreClient = exports.ServerCapability = exports.StorageBackend = exports.IndexState = exports.ConditionCombinator = exports.ValueType = void 0;
 const grpc = __importStar(require("@grpc/grpc-js"));
 const protoLoader = __importStar(require("@grpc/proto-loader"));
 const path = __importStar(require("path"));
@@ -49,6 +49,12 @@ var ConditionCombinator;
     ConditionCombinator["AND"] = "AND";
     ConditionCombinator["OR"] = "OR";
 })(ConditionCombinator || (exports.ConditionCombinator = ConditionCombinator = {}));
+var IndexState;
+(function (IndexState) {
+    IndexState["UNSPECIFIED"] = "INDEX_STATE_UNSPECIFIED";
+    IndexState["BUILDING"] = "INDEX_STATE_BUILDING";
+    IndexState["READY"] = "INDEX_STATE_READY";
+})(IndexState || (exports.IndexState = IndexState = {}));
 var StorageBackend;
 (function (StorageBackend) {
     StorageBackend["UNSPECIFIED"] = "STORAGE_BACKEND_UNSPECIFIED";
@@ -778,6 +784,79 @@ class EventStoreClient {
             this.logger.error(`Failed to drop index:`, error);
             throw new Error(`Failed to drop index: ${error.message}`);
         }
+    }
+    async listIndexes(boundary) {
+        if (this.disposed) {
+            throw new Error('Client has been disposed');
+        }
+        if (!boundary) {
+            throw new Error('Boundary is required');
+        }
+        try {
+            const metadata = this.createAuthMetadata('list indexes');
+            const response = await new Promise((resolve, reject) => {
+                const call = this.client.listIndexes({ boundary }, metadata, (error, value) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(value);
+                });
+                this.setupTokenCaching(call, 'list indexes response');
+            });
+            return {
+                indexes: (response.indexes || []).map((index) => this.mapIndexDefinition(index))
+            };
+        }
+        catch (error) {
+            this.logger.error('Failed to list indexes:', error);
+            throw new Error(`Failed to list indexes: ${error.message}`);
+        }
+    }
+    async getIndex(boundary, name) {
+        if (this.disposed) {
+            throw new Error('Client has been disposed');
+        }
+        if (!boundary) {
+            throw new Error('Boundary is required');
+        }
+        if (!name) {
+            throw new Error('Index name is required');
+        }
+        try {
+            const metadata = this.createAuthMetadata('get index');
+            const response = await new Promise((resolve, reject) => {
+                const call = this.client.getIndex({ boundary, name }, metadata, (error, value) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(value);
+                });
+                this.setupTokenCaching(call, 'get index response');
+            });
+            return { index: this.mapIndexDefinition(response.index) };
+        }
+        catch (error) {
+            this.logger.error('Failed to get index:', error);
+            throw new Error(`Failed to get index: ${error.message}`);
+        }
+    }
+    mapIndexDefinition(index) {
+        return {
+            name: index.name,
+            fields: (index.fields || []).map((field) => ({
+                jsonKey: field.json_key,
+                valueType: field.value_type
+            })),
+            conditions: (index.conditions || []).map((condition) => ({
+                key: condition.key,
+                operator: condition.operator,
+                value: condition.value
+            })),
+            conditionCombinator: index.condition_combinator,
+            state: index.state
+        };
     }
     /**
      * Check if the client is connected to the server

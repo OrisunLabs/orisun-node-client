@@ -97,6 +97,24 @@ export interface DropIndexRequest {
 }
 export interface DropIndexResponse {
 }
+export declare enum IndexState {
+    UNSPECIFIED = "INDEX_STATE_UNSPECIFIED",
+    BUILDING = "INDEX_STATE_BUILDING",
+    READY = "INDEX_STATE_READY"
+}
+export interface IndexDefinition {
+    name: string;
+    fields: IndexField[];
+    conditions: IndexCondition[];
+    conditionCombinator: ConditionCombinator;
+    state: IndexState;
+}
+export interface ListIndexesResponse {
+    indexes: IndexDefinition[];
+}
+export interface GetIndexResponse {
+    index: IndexDefinition;
+}
 export declare enum StorageBackend {
     UNSPECIFIED = "STORAGE_BACKEND_UNSPECIFIED",
     POSTGRES = "STORAGE_BACKEND_POSTGRES",
@@ -246,6 +264,9 @@ export declare class EventStoreClient {
     getServerInfo(): Promise<ServerInfo>;
     createIndex(request: CreateIndexRequest): Promise<CreateIndexResponse>;
     dropIndex(request: DropIndexRequest): Promise<DropIndexResponse>;
+    listIndexes(boundary: string): Promise<ListIndexesResponse>;
+    getIndex(boundary: string, name: string): Promise<GetIndexResponse>;
+    private mapIndexDefinition;
     /**
      * Check if the client is connected to the server
      * @returns Promise<boolean> True if connected, false otherwise

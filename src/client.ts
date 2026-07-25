@@ -124,6 +124,28 @@ export interface DropIndexRequest {
 export interface DropIndexResponse {
 }
 
+export enum IndexState {
+    UNSPECIFIED = 'INDEX_STATE_UNSPECIFIED',
+    BUILDING = 'INDEX_STATE_BUILDING',
+    READY = 'INDEX_STATE_READY'
+}
+
+export interface IndexDefinition {
+    name: string;
+    fields: IndexField[];
+    conditions: IndexCondition[];
+    conditionCombinator: ConditionCombinator;
+    state: IndexState;
+}
+
+export interface ListIndexesResponse {
+    indexes: IndexDefinition[];
+}
+
+export interface GetIndexResponse {
+    index: IndexDefinition;
+}
+
 export enum StorageBackend {
     UNSPECIFIED = 'STORAGE_BACKEND_UNSPECIFIED',
     POSTGRES = 'STORAGE_BACKEND_POSTGRES',
@@ -1083,6 +1105,80 @@ export class EventStoreClient {
             this.logger.error(`Failed to drop index:`, error);
             throw new Error(`Failed to drop index: ${(error as Error).message}`);
         }
+    }
+
+    async listIndexes(boundary: string): Promise<ListIndexesResponse> {
+        if (this.disposed) {
+            throw new Error('Client has been disposed');
+        }
+        if (!boundary) {
+            throw new Error('Boundary is required');
+        }
+        try {
+            const metadata = this.createAuthMetadata('list indexes');
+            const response = await new Promise<any>((resolve, reject) => {
+                const call = this.client.listIndexes({boundary}, metadata, (error: any, value: any) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(value);
+                });
+                this.setupTokenCaching(call, 'list indexes response');
+            });
+            return {
+                indexes: (response.indexes || []).map((index: any) => this.mapIndexDefinition(index))
+            };
+        } catch (error) {
+            this.logger.error('Failed to list indexes:', error);
+            throw new Error(`Failed to list indexes: ${(error as Error).message}`);
+        }
+    }
+
+    async getIndex(boundary: string, name: string): Promise<GetIndexResponse> {
+        if (this.disposed) {
+            throw new Error('Client has been disposed');
+        }
+        if (!boundary) {
+            throw new Error('Boundary is required');
+        }
+        if (!name) {
+            throw new Error('Index name is required');
+        }
+        try {
+            const metadata = this.createAuthMetadata('get index');
+            const response = await new Promise<any>((resolve, reject) => {
+                const call = this.client.getIndex({boundary, name}, metadata, (error: any, value: any) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(value);
+                });
+                this.setupTokenCaching(call, 'get index response');
+            });
+            return {index: this.mapIndexDefinition(response.index)};
+        } catch (error) {
+            this.logger.error('Failed to get index:', error);
+            throw new Error(`Failed to get index: ${(error as Error).message}`);
+        }
+    }
+
+    private mapIndexDefinition(index: any): IndexDefinition {
+        return {
+            name: index.name,
+            fields: (index.fields || []).map((field: any) => ({
+                jsonKey: field.json_key,
+                valueType: field.value_type as ValueType
+            })),
+            conditions: (index.conditions || []).map((condition: any) => ({
+                key: condition.key,
+                operator: condition.operator,
+                value: condition.value
+            })),
+            conditionCombinator: index.condition_combinator as ConditionCombinator,
+            state: index.state as IndexState
+        };
     }
 
     /**

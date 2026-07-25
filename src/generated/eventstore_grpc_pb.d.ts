@@ -17,6 +17,8 @@ interface IEventStoreService extends grpc.ServiceDefinition<grpc.UntypedServiceI
     getServerInfo: IEventStoreService_IGetServerInfo;
     createIndex: IEventStoreService_ICreateIndex;
     dropIndex: IEventStoreService_IDropIndex;
+    listIndexes: IEventStoreService_IListIndexes;
+    getIndex: IEventStoreService_IGetIndex;
 }
 
 interface IEventStoreService_ISaveEvents extends grpc.MethodDefinition<eventstore_pb.SaveEventsRequest, eventstore_pb.WriteResult> {
@@ -91,6 +93,24 @@ interface IEventStoreService_IDropIndex extends grpc.MethodDefinition<eventstore
     responseSerialize: grpc.serialize<eventstore_pb.DropIndexResponse>;
     responseDeserialize: grpc.deserialize<eventstore_pb.DropIndexResponse>;
 }
+interface IEventStoreService_IListIndexes extends grpc.MethodDefinition<eventstore_pb.ListIndexesRequest, eventstore_pb.ListIndexesResponse> {
+    path: "/orisun.EventStore/ListIndexes";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<eventstore_pb.ListIndexesRequest>;
+    requestDeserialize: grpc.deserialize<eventstore_pb.ListIndexesRequest>;
+    responseSerialize: grpc.serialize<eventstore_pb.ListIndexesResponse>;
+    responseDeserialize: grpc.deserialize<eventstore_pb.ListIndexesResponse>;
+}
+interface IEventStoreService_IGetIndex extends grpc.MethodDefinition<eventstore_pb.GetIndexRequest, eventstore_pb.GetIndexResponse> {
+    path: "/orisun.EventStore/GetIndex";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<eventstore_pb.GetIndexRequest>;
+    requestDeserialize: grpc.deserialize<eventstore_pb.GetIndexRequest>;
+    responseSerialize: grpc.serialize<eventstore_pb.GetIndexResponse>;
+    responseDeserialize: grpc.deserialize<eventstore_pb.GetIndexResponse>;
+}
 
 export const EventStoreService: IEventStoreService;
 
@@ -103,6 +123,8 @@ export interface IEventStoreServer extends grpc.UntypedServiceImplementation {
     getServerInfo: grpc.handleUnaryCall<eventstore_pb.GetServerInfoRequest, eventstore_pb.GetServerInfoResponse>;
     createIndex: grpc.handleUnaryCall<eventstore_pb.CreateIndexRequest, eventstore_pb.CreateIndexResponse>;
     dropIndex: grpc.handleUnaryCall<eventstore_pb.DropIndexRequest, eventstore_pb.DropIndexResponse>;
+    listIndexes: grpc.handleUnaryCall<eventstore_pb.ListIndexesRequest, eventstore_pb.ListIndexesResponse>;
+    getIndex: grpc.handleUnaryCall<eventstore_pb.GetIndexRequest, eventstore_pb.GetIndexResponse>;
 }
 
 export interface IEventStoreClient {
@@ -129,6 +151,12 @@ export interface IEventStoreClient {
     dropIndex(request: eventstore_pb.DropIndexRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.DropIndexResponse) => void): grpc.ClientUnaryCall;
     dropIndex(request: eventstore_pb.DropIndexRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.DropIndexResponse) => void): grpc.ClientUnaryCall;
     dropIndex(request: eventstore_pb.DropIndexRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.DropIndexResponse) => void): grpc.ClientUnaryCall;
+    listIndexes(request: eventstore_pb.ListIndexesRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.ListIndexesResponse) => void): grpc.ClientUnaryCall;
+    listIndexes(request: eventstore_pb.ListIndexesRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.ListIndexesResponse) => void): grpc.ClientUnaryCall;
+    listIndexes(request: eventstore_pb.ListIndexesRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.ListIndexesResponse) => void): grpc.ClientUnaryCall;
+    getIndex(request: eventstore_pb.GetIndexRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetIndexResponse) => void): grpc.ClientUnaryCall;
+    getIndex(request: eventstore_pb.GetIndexRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetIndexResponse) => void): grpc.ClientUnaryCall;
+    getIndex(request: eventstore_pb.GetIndexRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetIndexResponse) => void): grpc.ClientUnaryCall;
 }
 
 export class EventStoreClient extends grpc.Client implements IEventStoreClient {
@@ -156,4 +184,10 @@ export class EventStoreClient extends grpc.Client implements IEventStoreClient {
     public dropIndex(request: eventstore_pb.DropIndexRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.DropIndexResponse) => void): grpc.ClientUnaryCall;
     public dropIndex(request: eventstore_pb.DropIndexRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.DropIndexResponse) => void): grpc.ClientUnaryCall;
     public dropIndex(request: eventstore_pb.DropIndexRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.DropIndexResponse) => void): grpc.ClientUnaryCall;
+    public listIndexes(request: eventstore_pb.ListIndexesRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.ListIndexesResponse) => void): grpc.ClientUnaryCall;
+    public listIndexes(request: eventstore_pb.ListIndexesRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.ListIndexesResponse) => void): grpc.ClientUnaryCall;
+    public listIndexes(request: eventstore_pb.ListIndexesRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.ListIndexesResponse) => void): grpc.ClientUnaryCall;
+    public getIndex(request: eventstore_pb.GetIndexRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetIndexResponse) => void): grpc.ClientUnaryCall;
+    public getIndex(request: eventstore_pb.GetIndexRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetIndexResponse) => void): grpc.ClientUnaryCall;
+    public getIndex(request: eventstore_pb.GetIndexRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetIndexResponse) => void): grpc.ClientUnaryCall;
 }
