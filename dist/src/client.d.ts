@@ -97,6 +97,28 @@ export interface DropIndexRequest {
 }
 export interface DropIndexResponse {
 }
+export declare enum StorageBackend {
+    UNSPECIFIED = "STORAGE_BACKEND_UNSPECIFIED",
+    POSTGRES = "STORAGE_BACKEND_POSTGRES",
+    SQLITE = "STORAGE_BACKEND_SQLITE",
+    FOUNDATIONDB = "STORAGE_BACKEND_FOUNDATIONDB"
+}
+export declare enum ServerCapability {
+    UNSPECIFIED = "SERVER_CAPABILITY_UNSPECIFIED",
+    COMMAND_CONTEXT_CONSISTENCY = "SERVER_CAPABILITY_COMMAND_CONTEXT_CONSISTENCY",
+    CATCH_UP_SUBSCRIPTIONS = "SERVER_CAPABILITY_CATCH_UP_SUBSCRIPTIONS",
+    INDEX_MANAGEMENT = "SERVER_CAPABILITY_INDEX_MANAGEMENT",
+    BOUNDARY_CATALOG = "SERVER_CAPABILITY_BOUNDARY_CATALOG",
+    GRPC_HEALTH = "SERVER_CAPABILITY_GRPC_HEALTH"
+}
+export interface ServerInfo {
+    version: string;
+    gitCommit: string;
+    buildTime: string;
+    backend: StorageBackend;
+    nodeId: string;
+    capabilities: ServerCapability[];
+}
 /**
  * Logger interface for client logging
  */
@@ -217,6 +239,11 @@ export declare class EventStoreClient {
      * @returns Promise<void> Resolves if the server responds successfully
      */
     ping(): Promise<void>;
+    /**
+     * Return build, backend, node identity, and capability information for the
+     * server that handles this call.
+     */
+    getServerInfo(): Promise<ServerInfo>;
     createIndex(request: CreateIndexRequest): Promise<CreateIndexResponse>;
     dropIndex(request: DropIndexRequest): Promise<DropIndexResponse>;
     /**

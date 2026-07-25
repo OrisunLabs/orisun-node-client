@@ -41,12 +41,14 @@ const mockGetEvents = jest.fn();
 const mockGetLatestByCriteria = jest.fn();
 const mockCatchUpSubscribeToEvents = jest.fn();
 const mockPing = jest.fn();
+const mockGetServerInfo = jest.fn();
 const mockEventStoreClient = {
     saveEvents: mockSaveEvents,
     getEvents: mockGetEvents,
     getLatestByCriteria: mockGetLatestByCriteria,
     catchUpSubscribeToEvents: mockCatchUpSubscribeToEvents,
     ping: mockPing,
+    getServerInfo: mockGetServerInfo,
 };
 const mockClient = jest.fn().mockImplementation(() => mockEventStoreClient);
 jest.mock('@grpc/grpc-js', () => ({
@@ -164,6 +166,23 @@ beforeEach(() => {
             })
         };
         callback(null, {});
+        return mockCall;
+    });
+    mockGetServerInfo.mockImplementation((request, metadata, callback) => {
+        const mockCall = {
+            on: jest.fn()
+        };
+        callback(null, {
+            version: '0.10.0',
+            git_commit: 'abc123',
+            build_time: '2026-07-25T12:00:00Z',
+            backend: 'STORAGE_BACKEND_SQLITE',
+            node_id: 'node-1',
+            capabilities: [
+                'SERVER_CAPABILITY_COMMAND_CONTEXT_CONSISTENCY',
+                'SERVER_CAPABILITY_GRPC_HEALTH'
+            ]
+        });
         return mockCall;
     });
 });
@@ -483,6 +502,22 @@ describe('EventStoreClient', () => {
                 return mockCall;
             });
             await client.ping();
+        });
+    });
+    describe('getServerInfo', () => {
+        it('maps the server information response', async () => {
+            await expect(client.getServerInfo()).resolves.toEqual({
+                version: '0.10.0',
+                gitCommit: 'abc123',
+                buildTime: '2026-07-25T12:00:00Z',
+                backend: src_1.StorageBackend.SQLITE,
+                nodeId: 'node-1',
+                capabilities: [
+                    src_1.ServerCapability.COMMAND_CONTEXT_CONSISTENCY,
+                    src_1.ServerCapability.GRPC_HEALTH
+                ]
+            });
+            expect(mockGetServerInfo).toHaveBeenCalled();
         });
     });
     describe('token caching', () => {

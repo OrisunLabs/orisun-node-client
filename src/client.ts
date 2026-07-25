@@ -124,6 +124,31 @@ export interface DropIndexRequest {
 export interface DropIndexResponse {
 }
 
+export enum StorageBackend {
+    UNSPECIFIED = 'STORAGE_BACKEND_UNSPECIFIED',
+    POSTGRES = 'STORAGE_BACKEND_POSTGRES',
+    SQLITE = 'STORAGE_BACKEND_SQLITE',
+    FOUNDATIONDB = 'STORAGE_BACKEND_FOUNDATIONDB'
+}
+
+export enum ServerCapability {
+    UNSPECIFIED = 'SERVER_CAPABILITY_UNSPECIFIED',
+    COMMAND_CONTEXT_CONSISTENCY = 'SERVER_CAPABILITY_COMMAND_CONTEXT_CONSISTENCY',
+    CATCH_UP_SUBSCRIPTIONS = 'SERVER_CAPABILITY_CATCH_UP_SUBSCRIPTIONS',
+    INDEX_MANAGEMENT = 'SERVER_CAPABILITY_INDEX_MANAGEMENT',
+    BOUNDARY_CATALOG = 'SERVER_CAPABILITY_BOUNDARY_CATALOG',
+    GRPC_HEALTH = 'SERVER_CAPABILITY_GRPC_HEALTH'
+}
+
+export interface ServerInfo {
+    version: string;
+    gitCommit: string;
+    buildTime: string;
+    backend: StorageBackend;
+    nodeId: string;
+    capabilities: ServerCapability[];
+}
+
 /**
  * Logger interface for client logging
  */
@@ -914,6 +939,43 @@ export class EventStoreClient {
         } catch (error) {
             this.logger.error('Ping failed:', error);
             throw new Error(`Ping failed: ${(error as Error).message}`);
+        }
+    }
+
+    /**
+     * Return build, backend, node identity, and capability information for the
+     * server that handles this call.
+     */
+    async getServerInfo(): Promise<ServerInfo> {
+        if (this.disposed) {
+            throw new Error('Client has been disposed');
+        }
+
+        try {
+            const metadata = this.createAuthMetadata('get server info');
+            const response = await new Promise<any>((resolve, reject) => {
+                const call = this.client.getServerInfo({}, metadata, (error: any, value: any) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(value);
+                });
+
+                this.setupTokenCaching(call, 'get server info response');
+            });
+
+            return {
+                version: response.version,
+                gitCommit: response.git_commit,
+                buildTime: response.build_time,
+                backend: response.backend as StorageBackend,
+                nodeId: response.node_id,
+                capabilities: (response.capabilities || []) as ServerCapability[]
+            };
+        } catch (error) {
+            this.logger.error('Failed to get server info:', error);
+            throw new Error(`Failed to get server info: ${(error as Error).message}`);
         }
     }
 

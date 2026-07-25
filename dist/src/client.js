@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventStoreClient = exports.ConditionCombinator = exports.ValueType = void 0;
+exports.EventStoreClient = exports.ServerCapability = exports.StorageBackend = exports.ConditionCombinator = exports.ValueType = void 0;
 const grpc = __importStar(require("@grpc/grpc-js"));
 const protoLoader = __importStar(require("@grpc/proto-loader"));
 const path = __importStar(require("path"));
@@ -49,6 +49,22 @@ var ConditionCombinator;
     ConditionCombinator["AND"] = "AND";
     ConditionCombinator["OR"] = "OR";
 })(ConditionCombinator || (exports.ConditionCombinator = ConditionCombinator = {}));
+var StorageBackend;
+(function (StorageBackend) {
+    StorageBackend["UNSPECIFIED"] = "STORAGE_BACKEND_UNSPECIFIED";
+    StorageBackend["POSTGRES"] = "STORAGE_BACKEND_POSTGRES";
+    StorageBackend["SQLITE"] = "STORAGE_BACKEND_SQLITE";
+    StorageBackend["FOUNDATIONDB"] = "STORAGE_BACKEND_FOUNDATIONDB";
+})(StorageBackend || (exports.StorageBackend = StorageBackend = {}));
+var ServerCapability;
+(function (ServerCapability) {
+    ServerCapability["UNSPECIFIED"] = "SERVER_CAPABILITY_UNSPECIFIED";
+    ServerCapability["COMMAND_CONTEXT_CONSISTENCY"] = "SERVER_CAPABILITY_COMMAND_CONTEXT_CONSISTENCY";
+    ServerCapability["CATCH_UP_SUBSCRIPTIONS"] = "SERVER_CAPABILITY_CATCH_UP_SUBSCRIPTIONS";
+    ServerCapability["INDEX_MANAGEMENT"] = "SERVER_CAPABILITY_INDEX_MANAGEMENT";
+    ServerCapability["BOUNDARY_CATALOG"] = "SERVER_CAPABILITY_BOUNDARY_CATALOG";
+    ServerCapability["GRPC_HEALTH"] = "SERVER_CAPABILITY_GRPC_HEALTH";
+})(ServerCapability || (exports.ServerCapability = ServerCapability = {}));
 /**
  * Validates client options and throws errors for invalid configurations
  */
@@ -639,6 +655,40 @@ class EventStoreClient {
         catch (error) {
             this.logger.error('Ping failed:', error);
             throw new Error(`Ping failed: ${error.message}`);
+        }
+    }
+    /**
+     * Return build, backend, node identity, and capability information for the
+     * server that handles this call.
+     */
+    async getServerInfo() {
+        if (this.disposed) {
+            throw new Error('Client has been disposed');
+        }
+        try {
+            const metadata = this.createAuthMetadata('get server info');
+            const response = await new Promise((resolve, reject) => {
+                const call = this.client.getServerInfo({}, metadata, (error, value) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(value);
+                });
+                this.setupTokenCaching(call, 'get server info response');
+            });
+            return {
+                version: response.version,
+                gitCommit: response.git_commit,
+                buildTime: response.build_time,
+                backend: response.backend,
+                nodeId: response.node_id,
+                capabilities: (response.capabilities || [])
+            };
+        }
+        catch (error) {
+            this.logger.error('Failed to get server info:', error);
+            throw new Error(`Failed to get server info: ${error.message}`);
         }
     }
     async createIndex(request) {

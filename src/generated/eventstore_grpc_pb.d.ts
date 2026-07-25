@@ -14,6 +14,7 @@ interface IEventStoreService extends grpc.ServiceDefinition<grpc.UntypedServiceI
     getLatestByCriteria: IEventStoreService_IGetLatestByCriteria;
     catchUpSubscribeToEvents: IEventStoreService_ICatchUpSubscribeToEvents;
     ping: IEventStoreService_IPing;
+    getServerInfo: IEventStoreService_IGetServerInfo;
     createIndex: IEventStoreService_ICreateIndex;
     dropIndex: IEventStoreService_IDropIndex;
 }
@@ -63,6 +64,15 @@ interface IEventStoreService_IPing extends grpc.MethodDefinition<eventstore_pb.P
     responseSerialize: grpc.serialize<eventstore_pb.PingResponse>;
     responseDeserialize: grpc.deserialize<eventstore_pb.PingResponse>;
 }
+interface IEventStoreService_IGetServerInfo extends grpc.MethodDefinition<eventstore_pb.GetServerInfoRequest, eventstore_pb.GetServerInfoResponse> {
+    path: "/orisun.EventStore/GetServerInfo";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<eventstore_pb.GetServerInfoRequest>;
+    requestDeserialize: grpc.deserialize<eventstore_pb.GetServerInfoRequest>;
+    responseSerialize: grpc.serialize<eventstore_pb.GetServerInfoResponse>;
+    responseDeserialize: grpc.deserialize<eventstore_pb.GetServerInfoResponse>;
+}
 interface IEventStoreService_ICreateIndex extends grpc.MethodDefinition<eventstore_pb.CreateIndexRequest, eventstore_pb.CreateIndexResponse> {
     path: "/orisun.EventStore/CreateIndex";
     requestStream: false;
@@ -90,6 +100,7 @@ export interface IEventStoreServer extends grpc.UntypedServiceImplementation {
     getLatestByCriteria: grpc.handleUnaryCall<eventstore_pb.GetLatestByCriteriaRequest, eventstore_pb.GetLatestByCriteriaResponse>;
     catchUpSubscribeToEvents: grpc.handleServerStreamingCall<eventstore_pb.CatchUpSubscribeToEventStoreRequest, eventstore_pb.Event>;
     ping: grpc.handleUnaryCall<eventstore_pb.PingRequest, eventstore_pb.PingResponse>;
+    getServerInfo: grpc.handleUnaryCall<eventstore_pb.GetServerInfoRequest, eventstore_pb.GetServerInfoResponse>;
     createIndex: grpc.handleUnaryCall<eventstore_pb.CreateIndexRequest, eventstore_pb.CreateIndexResponse>;
     dropIndex: grpc.handleUnaryCall<eventstore_pb.DropIndexRequest, eventstore_pb.DropIndexResponse>;
 }
@@ -109,6 +120,9 @@ export interface IEventStoreClient {
     ping(request: eventstore_pb.PingRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.PingResponse) => void): grpc.ClientUnaryCall;
     ping(request: eventstore_pb.PingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.PingResponse) => void): grpc.ClientUnaryCall;
     ping(request: eventstore_pb.PingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.PingResponse) => void): grpc.ClientUnaryCall;
+    getServerInfo(request: eventstore_pb.GetServerInfoRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetServerInfoResponse) => void): grpc.ClientUnaryCall;
+    getServerInfo(request: eventstore_pb.GetServerInfoRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetServerInfoResponse) => void): grpc.ClientUnaryCall;
+    getServerInfo(request: eventstore_pb.GetServerInfoRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetServerInfoResponse) => void): grpc.ClientUnaryCall;
     createIndex(request: eventstore_pb.CreateIndexRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.CreateIndexResponse) => void): grpc.ClientUnaryCall;
     createIndex(request: eventstore_pb.CreateIndexRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.CreateIndexResponse) => void): grpc.ClientUnaryCall;
     createIndex(request: eventstore_pb.CreateIndexRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.CreateIndexResponse) => void): grpc.ClientUnaryCall;
@@ -133,6 +147,9 @@ export class EventStoreClient extends grpc.Client implements IEventStoreClient {
     public ping(request: eventstore_pb.PingRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.PingResponse) => void): grpc.ClientUnaryCall;
     public ping(request: eventstore_pb.PingRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.PingResponse) => void): grpc.ClientUnaryCall;
     public ping(request: eventstore_pb.PingRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.PingResponse) => void): grpc.ClientUnaryCall;
+    public getServerInfo(request: eventstore_pb.GetServerInfoRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetServerInfoResponse) => void): grpc.ClientUnaryCall;
+    public getServerInfo(request: eventstore_pb.GetServerInfoRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetServerInfoResponse) => void): grpc.ClientUnaryCall;
+    public getServerInfo(request: eventstore_pb.GetServerInfoRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetServerInfoResponse) => void): grpc.ClientUnaryCall;
     public createIndex(request: eventstore_pb.CreateIndexRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.CreateIndexResponse) => void): grpc.ClientUnaryCall;
     public createIndex(request: eventstore_pb.CreateIndexRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.CreateIndexResponse) => void): grpc.ClientUnaryCall;
     public createIndex(request: eventstore_pb.CreateIndexRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.CreateIndexResponse) => void): grpc.ClientUnaryCall;

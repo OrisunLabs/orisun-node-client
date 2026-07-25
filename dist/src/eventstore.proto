@@ -83,6 +83,33 @@ message CatchUpSubscribeToEventStoreRequest {
 message PingRequest {}
 message PingResponse {}
 
+message GetServerInfoRequest {}
+
+enum StorageBackend {
+  STORAGE_BACKEND_UNSPECIFIED = 0;
+  STORAGE_BACKEND_POSTGRES = 1;
+  STORAGE_BACKEND_SQLITE = 2;
+  STORAGE_BACKEND_FOUNDATIONDB = 3;
+}
+
+enum ServerCapability {
+  SERVER_CAPABILITY_UNSPECIFIED = 0;
+  SERVER_CAPABILITY_COMMAND_CONTEXT_CONSISTENCY = 1;
+  SERVER_CAPABILITY_CATCH_UP_SUBSCRIPTIONS = 2;
+  SERVER_CAPABILITY_INDEX_MANAGEMENT = 3;
+  SERVER_CAPABILITY_BOUNDARY_CATALOG = 4;
+  SERVER_CAPABILITY_GRPC_HEALTH = 5;
+}
+
+message GetServerInfoResponse {
+  string version = 1;
+  string git_commit = 2;
+  string build_time = 3;
+  StorageBackend backend = 4;
+  string node_id = 5;
+  repeated ServerCapability capabilities = 6;
+}
+
 // GetLatestByCriteria returns the latest event matching each criterion,
 // assembled by the server from ONE consistent read snapshot, plus the
 // context_position to use as SaveEvents.query.expected_position with the same
@@ -159,6 +186,7 @@ service EventStore {
   rpc GetLatestByCriteria(GetLatestByCriteriaRequest) returns (GetLatestByCriteriaResponse) {}
   rpc CatchUpSubscribeToEvents(CatchUpSubscribeToEventStoreRequest) returns (stream Event) {}
   rpc Ping(PingRequest) returns (PingResponse) {}
+  rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse) {}
   rpc CreateIndex(CreateIndexRequest) returns (CreateIndexResponse) {}
   rpc DropIndex(DropIndexRequest) returns (DropIndexResponse) {}
 }

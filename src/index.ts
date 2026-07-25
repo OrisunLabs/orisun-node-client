@@ -20,6 +20,9 @@ export {
   CreateIndexResponse,
   DropIndexRequest,
   DropIndexResponse,
+  StorageBackend,
+  ServerCapability,
+  ServerInfo,
   EventStoreClientOptions,
   Logger
 } from './client';

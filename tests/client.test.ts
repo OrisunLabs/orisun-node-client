@@ -1,4 +1,12 @@
-import {EventStoreClient, Event, EventToSave, Position, WriteResult} from '../src';
+import {
+    EventStoreClient,
+    Event,
+    EventToSave,
+    Position,
+    ServerCapability,
+    StorageBackend,
+    WriteResult
+} from '../src';
 import * as grpc from '@grpc/grpc-js';
 
 // Mock gRPC and protobuf modules
@@ -7,6 +15,7 @@ const mockGetEvents = jest.fn();
 const mockGetLatestByCriteria = jest.fn();
 const mockCatchUpSubscribeToEvents = jest.fn();
 const mockPing = jest.fn();
+const mockGetServerInfo = jest.fn();
 
 const mockEventStoreClient = {
     saveEvents: mockSaveEvents,
@@ -14,6 +23,7 @@ const mockEventStoreClient = {
     getLatestByCriteria: mockGetLatestByCriteria,
     catchUpSubscribeToEvents: mockCatchUpSubscribeToEvents,
     ping: mockPing,
+    getServerInfo: mockGetServerInfo,
 };
 
 const mockClient = jest.fn().mockImplementation(() => mockEventStoreClient);
@@ -142,6 +152,24 @@ beforeEach(() => {
             })
         };
         callback(null, {});
+        return mockCall;
+    });
+
+    mockGetServerInfo.mockImplementation((request, metadata, callback) => {
+        const mockCall = {
+            on: jest.fn()
+        };
+        callback(null, {
+            version: '0.10.0',
+            git_commit: 'abc123',
+            build_time: '2026-07-25T12:00:00Z',
+            backend: 'STORAGE_BACKEND_SQLITE',
+            node_id: 'node-1',
+            capabilities: [
+                'SERVER_CAPABILITY_COMMAND_CONTEXT_CONSISTENCY',
+                'SERVER_CAPABILITY_GRPC_HEALTH'
+            ]
+        });
         return mockCall;
     });
 });
@@ -517,6 +545,23 @@ describe('EventStoreClient', () => {
             });
 
             await client.ping();
+        });
+    });
+
+    describe('getServerInfo', () => {
+        it('maps the server information response', async () => {
+            await expect(client.getServerInfo()).resolves.toEqual({
+                version: '0.10.0',
+                gitCommit: 'abc123',
+                buildTime: '2026-07-25T12:00:00Z',
+                backend: StorageBackend.SQLITE,
+                nodeId: 'node-1',
+                capabilities: [
+                    ServerCapability.COMMAND_CONTEXT_CONSISTENCY,
+                    ServerCapability.GRPC_HEALTH
+                ]
+            });
+            expect(mockGetServerInfo).toHaveBeenCalled();
         });
     });
 

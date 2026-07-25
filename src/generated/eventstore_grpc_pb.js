@@ -114,6 +114,28 @@ function deserialize_orisun_GetLatestByCriteriaResponse(buffer_arg) {
   return eventstore_pb.GetLatestByCriteriaResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_orisun_GetServerInfoRequest(arg) {
+  if (!(arg instanceof eventstore_pb.GetServerInfoRequest)) {
+    throw new Error('Expected argument of type orisun.GetServerInfoRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_GetServerInfoRequest(buffer_arg) {
+  return eventstore_pb.GetServerInfoRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_orisun_GetServerInfoResponse(arg) {
+  if (!(arg instanceof eventstore_pb.GetServerInfoResponse)) {
+    throw new Error('Expected argument of type orisun.GetServerInfoResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_GetServerInfoResponse(buffer_arg) {
+  return eventstore_pb.GetServerInfoResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_orisun_PingRequest(arg) {
   if (!(arg instanceof eventstore_pb.PingRequest)) {
     throw new Error('Expected argument of type orisun.PingRequest');
@@ -214,6 +236,17 @@ var EventStoreService = exports['orisun.EventStore'] = {
     requestDeserialize: deserialize_orisun_PingRequest,
     responseSerialize: serialize_orisun_PingResponse,
     responseDeserialize: deserialize_orisun_PingResponse,
+  },
+  getServerInfo: {
+    path: '/orisun.EventStore/GetServerInfo',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventstore_pb.GetServerInfoRequest,
+    responseType: eventstore_pb.GetServerInfoResponse,
+    requestSerialize: serialize_orisun_GetServerInfoRequest,
+    requestDeserialize: deserialize_orisun_GetServerInfoRequest,
+    responseSerialize: serialize_orisun_GetServerInfoResponse,
+    responseDeserialize: deserialize_orisun_GetServerInfoResponse,
   },
   createIndex: {
     path: '/orisun.EventStore/CreateIndex',

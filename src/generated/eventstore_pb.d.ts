@@ -379,7 +379,61 @@ export namespace PingResponse {
     }
 }
 
-export class GetLatestByCriteriaRequest extends jspb.Message {
+export class GetServerInfoRequest extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetServerInfoRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetServerInfoRequest): GetServerInfoRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetServerInfoRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetServerInfoRequest;
+    static deserializeBinaryFromReader(message: GetServerInfoRequest, reader: jspb.BinaryReader): GetServerInfoRequest;
+}
+
+export namespace GetServerInfoRequest {
+    export type AsObject = {
+    }
+}
+
+export class GetServerInfoResponse extends jspb.Message { 
+    getVersion(): string;
+    setVersion(value: string): GetServerInfoResponse;
+    getGitCommit(): string;
+    setGitCommit(value: string): GetServerInfoResponse;
+    getBuildTime(): string;
+    setBuildTime(value: string): GetServerInfoResponse;
+    getBackend(): StorageBackend;
+    setBackend(value: StorageBackend): GetServerInfoResponse;
+    getNodeId(): string;
+    setNodeId(value: string): GetServerInfoResponse;
+    clearCapabilitiesList(): void;
+    getCapabilitiesList(): Array<ServerCapability>;
+    setCapabilitiesList(value: Array<ServerCapability>): GetServerInfoResponse;
+    addCapabilities(value: ServerCapability, index?: number): ServerCapability;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetServerInfoResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetServerInfoResponse): GetServerInfoResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetServerInfoResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetServerInfoResponse;
+    static deserializeBinaryFromReader(message: GetServerInfoResponse, reader: jspb.BinaryReader): GetServerInfoResponse;
+}
+
+export namespace GetServerInfoResponse {
+    export type AsObject = {
+        version: string,
+        gitCommit: string,
+        buildTime: string,
+        backend: StorageBackend,
+        nodeId: string,
+        capabilitiesList: Array<ServerCapability>,
+    }
+}
+
+export class GetLatestByCriteriaRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): GetLatestByCriteriaRequest;
     clearCriteriaList(): void;
@@ -404,7 +458,7 @@ export namespace GetLatestByCriteriaRequest {
     }
 }
 
-export class LatestCriterionResult extends jspb.Message {
+export class LatestCriterionResult extends jspb.Message { 
 
     hasCriterion(): boolean;
     clearCriterion(): void;
@@ -433,7 +487,7 @@ export namespace LatestCriterionResult {
     }
 }
 
-export class GetLatestByCriteriaResponse extends jspb.Message {
+export class GetLatestByCriteriaResponse extends jspb.Message { 
     clearResultsList(): void;
     getResultsList(): Array<LatestCriterionResult>;
     setResultsList(value: Array<LatestCriterionResult>): GetLatestByCriteriaResponse;
@@ -606,6 +660,22 @@ export namespace DropIndexResponse {
 export enum Direction {
     ASC = 0,
     DESC = 1,
+}
+
+export enum StorageBackend {
+    STORAGE_BACKEND_UNSPECIFIED = 0,
+    STORAGE_BACKEND_POSTGRES = 1,
+    STORAGE_BACKEND_SQLITE = 2,
+    STORAGE_BACKEND_FOUNDATIONDB = 3,
+}
+
+export enum ServerCapability {
+    SERVER_CAPABILITY_UNSPECIFIED = 0,
+    SERVER_CAPABILITY_COMMAND_CONTEXT_CONSISTENCY = 1,
+    SERVER_CAPABILITY_CATCH_UP_SUBSCRIPTIONS = 2,
+    SERVER_CAPABILITY_INDEX_MANAGEMENT = 3,
+    SERVER_CAPABILITY_BOUNDARY_CATALOG = 4,
+    SERVER_CAPABILITY_GRPC_HEALTH = 5,
 }
 
 export enum ValueType {
