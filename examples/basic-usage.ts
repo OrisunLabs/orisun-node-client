@@ -1,4 +1,4 @@
-import {EventStoreClient, Event, WriteResult} from '../src';
+import {EventStoreClient, Event, WriteResult, Query} from '../src';
 
 async function basicUsageExample() {
     // Create a client instance with keep-alive options and load balancing
@@ -38,13 +38,19 @@ async function basicUsageExample() {
             console.log('Health check failed - but continuing with operations...');
         }
 
-        // Define some sample events with proper UUIDs
+        // Orisun uses Command Context Consistency (CCC): instead of pre-defined
+        // streams, a command defines its context by querying events on their
+        // data content. A criterion tag {key, value} matches events whose data
+        // JSONB has that key/value (data->>'key' = 'value'), so put the fields
+        // later commands and subscriptions query on inside each event's data.
+        const userId = `user-${Date.now()}`;
+
         const events = [
             {
                 eventId: crypto.randomUUID(),
                 eventType: 'UserCreated',
                 data: {
-                    userId: 'user-123',
+                    userId,
                     email: 'john.doe@example.com',
                     name: 'John Doe'
                 },
@@ -57,7 +63,7 @@ async function basicUsageExample() {
                 eventId: crypto.randomUUID(),
                 eventType: 'UserEmailUpdated',
                 data: {
-                    userId: 'user-123',
+                    userId,
                     oldEmail: 'john.doe@example.com',
                     newEmail: 'john.doe@newdomain.com'
                 },
@@ -68,31 +74,35 @@ async function basicUsageExample() {
             }
         ];
 
-        // Save events to a stream with unique name
-        const streamName = `user-${Date.now()}`;
-        console.log(`Saving events to stream: ${streamName}...`);
+        // The context for this command is "all events whose data.userId matches".
+        const userQuery: Query = {
+            criteria: [{tags: [{key: 'userId', value: userId}]}]
+        };
+
+        // Save events. expectedPosition {-1, -1} asserts the context is empty
+        // (no prior events match the query) — CCC optimistic concurrency.
+        console.log(`Saving events for ${userId}...`);
         const writeResult: WriteResult = await client.saveEvents({
             boundary: 'orisun_test_2',
-            stream: {
-                name: streamName,
+            query: {
                 expectedPosition: {
                     commitPosition: -1,
                     preparePosition: -1
-                } // Expecting stream to be new
+                },
+                subsetQuery: userQuery
             },
             events: events
         });
         console.log('Events saved successfully!');
-        console.log('Log position:', writeResult.logPosition);
-        console.log('New stream version:', writeResult.logPosition);
+        console.log('Commit position:', writeResult.logPosition.commitPosition);
+        console.log('Prepare position:', writeResult.logPosition.preparePosition);
 
-        // Read events from the stream
-        console.log(`Reading events from stream: ${streamName}...`);
+        // Read the events back by querying on the same tags.
+        console.log(`Reading events for ${userId}...`);
         const retrievedEvents = await client.getEvents({
             boundary: 'orisun_test_2',
-            stream: {
-                name: streamName
-            }
+            query: userQuery,
+            direction: 'ASC'
         });
 
         console.log(`Retrieved ${retrievedEvents.length} events:`);
@@ -101,16 +111,16 @@ async function basicUsageExample() {
                 eventId: event.eventId,
                 eventType: event.eventType,
                 data: event.data,
-                version: event.position,
+                position: event.position,
                 dateCreated: event.dateCreated
             });
         });
 
-        // Subscribe to events (this will run indefinitely)
-        console.log(`\nSubscribing to events from stream '${streamName}'...`);
+        // Subscribe to events matching the query (this will run indefinitely)
+        console.log(`\nSubscribing to events for ${userId}...`);
         const subscription = client.subscribeToEvents(
             {
-                stream: streamName,
+                query: userQuery,
                 subscriberName: 'example-subscriber',
                 boundary: 'orisun_test_2'
             },
@@ -119,7 +129,7 @@ async function basicUsageExample() {
                     eventId: event.eventId,
                     eventType: event.eventType,
                     data: event.data,
-                    version: event.position
+                    position: event.position
                 });
             },
             (error: Error) => {

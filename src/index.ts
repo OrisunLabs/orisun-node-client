@@ -10,6 +10,7 @@ export {
   SubscribeRequest,
   WriteResult,
   Position,
+  Query,
   Criterion,
   Tag,
   ValueType,
