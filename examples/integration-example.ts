@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { EventStoreClient, EventToSave, WriteResult } from '../src';
+import { EventStoreClient, EventToSave, WriteResult, Query } from '../src';
 
 /**
  * Integration example showing how to use the Node.js client
@@ -48,7 +48,13 @@ async function integrationExample() {
     console.log('✅ Connected successfully!');
 
     const boundary = 'orisun_test_1';
-    const streamName = `order-${Date.now()}`;
+    const orderId = `order-${Date.now()}`;
+
+    // The command context is "all events for this order". Orisun defines it by
+    // querying event data (data.orderId), not by a stream name.
+    const orderQuery: Query = {
+      criteria: [{ tags: [{ key: 'orderId', value: orderId }] }]
+    };
 
     // Create some events for an order processing scenario
     const orderEvents: EventToSave[] = [
@@ -56,7 +62,7 @@ async function integrationExample() {
         eventId: randomUUID(),
         eventType: 'OrderCreated',
         data: {
-          orderId: streamName,
+          orderId,
           customerId: 'customer-123',
           items: [
             { productId: 'prod-1', quantity: 2, price: 29.99 },
@@ -74,7 +80,7 @@ async function integrationExample() {
         eventId: randomUUID(),
         eventType: 'PaymentProcessed',
         data: {
-          orderId: streamName,
+          orderId,
           paymentId: `payment-${Date.now()}`,
           amount: 109.97,
           method: 'credit_card',
@@ -89,7 +95,7 @@ async function integrationExample() {
         eventId: randomUUID(),
         eventType: 'OrderShipped',
         data: {
-          orderId: streamName,
+          orderId,
           trackingNumber: `TRK${Date.now()}`,
           carrier: 'FastShip',
           estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
@@ -101,55 +107,53 @@ async function integrationExample() {
       }
     ];
 
-    // Save events to the stream
-    console.log(`📝 Saving ${orderEvents.length} events to stream: ${streamName}`);
+    // Save events for the order. expectedPosition {-1,-1} asserts no prior
+    // events match orderQuery (fresh context) — CCC optimistic concurrency.
+    console.log(`📝 Saving ${orderEvents.length} events for order: ${orderId}`);
     const writeResult: WriteResult = await client.saveEvents({
       boundary,
-      stream: {
-        name: streamName,
-        expectedVersion: -1 // New stream
+      query: {
+        expectedPosition: { commitPosition: -1, preparePosition: -1 },
+        subsetQuery: orderQuery
       },
       events: orderEvents
     });
     console.log('✅ Events saved successfully!');
     console.log('📍 Log position:', writeResult.logPosition);
 
-    // Read events back from the stream
-    console.log('📖 Reading events from stream...');
+    // Read the order's events back by querying on the same criteria.
+    console.log('📖 Reading events for order...');
     const retrievedEvents = await client.getEvents({
       boundary,
-      stream: {
-        name: streamName
-      },
+      query: orderQuery,
+      direction: 'ASC',
       count: 10
     });
-    
+
     console.log(`📋 Retrieved ${retrievedEvents.length} events:`);
     retrievedEvents.forEach((event, index) => {
       console.log(`\n  Event ${index + 1}:`);
       console.log(`    ID: ${event.eventId}`);
       console.log(`    Type: ${event.eventType}`);
-      console.log(`    Version: ${event.version}`);
+      console.log(`    Position: ${event.position.commitPosition}/${event.position.preparePosition}`);
       console.log(`    Data:`, JSON.stringify(event.data, null, 6));
       console.log(`    Metadata:`, JSON.stringify(event.metadata, null, 6));
     });
 
-    // Demonstrate subscription to the stream
-    console.log('\n🔔 Setting up subscription to stream events...');
+    // Subscribe to this order's events, resuming after the events just written
+    // so the OrderDelivered event below triggers the handler.
+    console.log('\n🔔 Setting up subscription to order events...');
     const subscription = client.subscribeToEvents(
       {
         subscriberName: 'integration-example',
         boundary,
-        afterPosition: {
-          commitPosition: 29109,
-          preparePosition: 713
-        }
+        query: orderQuery,
+        afterPosition: writeResult.logPosition
       },
       async (event) => {
         console.log(`\n📨 Received event via subscription:`);
         console.log(`    Type: ${event.eventType}`);
-        console.log(`    Stream: ${event.streamId}`);
-        console.log(`    Version: ${event.version}`);
+        console.log(`    Position: ${event.position.commitPosition}/${event.position.preparePosition}`);
         console.log(`    Data:`, JSON.stringify(event.data, null, 6));
       },
       (error) => {
@@ -157,20 +161,22 @@ async function integrationExample() {
       }
     );
 
-    // Add one more event to trigger the subscription
+    // Add one more event to trigger the subscription. expectedPosition is the
+    // context position returned by the first save, asserting nothing else has
+    // touched this order's context since.
     setTimeout(async () => {
       console.log('\n📝 Adding one more event to trigger subscription...');
       const additionalWriteResult: WriteResult = await client.saveEvents({
         boundary,
-        stream: {
-          name: streamName,
-          expectedVersion: 2 // We already have 3 events
+        query: {
+          expectedPosition: writeResult.logPosition,
+          subsetQuery: orderQuery
         },
         events: [{
           eventId: randomUUID(),
           eventType: 'OrderDelivered',
           data: {
-            orderId: streamName,
+            orderId,
             deliveredAt: new Date().toISOString(),
             signedBy: 'John Doe'
           },

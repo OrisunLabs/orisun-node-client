@@ -4,7 +4,7 @@ async function main() {
   // Create client
   const client = new EventStoreClient({
     host: 'localhost',
-    port: 2113,
+    port: 5005,
     enableLogging: true
   });
 
@@ -21,15 +21,17 @@ async function main() {
     // Example 1: Using the new async subscription method
     console.log('\n📡 Starting async subscription with for await...');
     
+    // Orisun subscriptions filter by event data content, not by stream. Pass a
+    // `query` with criteria to narrow the feed; omit it to receive every event
+    // in the boundary, as this example does.
     const subscriptionPromise = client.subscribeToEvents(
       {
         subscriberName: 'async-example-subscriber',
-        boundary: 'demo-tenant',
-        stream: 'order-stream'
+        boundary: 'demo-tenant'
       },
       async (event: Event) => {
         console.log(`📨 Received event: ${event.eventType} (ID: ${event.eventId})`);
-        console.log(`   Stream: ${event.streamId}, Version: ${event.version}`);
+        console.log(`   Position: ${event.position.commitPosition}/${event.position.preparePosition}`);
         console.log(`   Data:`, event.data);
         
         // Simulate some async processing
@@ -62,56 +64,55 @@ async function main() {
   }
 }
 
-// Example 2: Comparison between old and new subscription methods
+// Example 2: Unfiltered vs content-filtered subscriptions
 async function comparisonExample() {
   const client = new EventStoreClient({
     host: 'localhost',
-    port: 2113,
+    port: 5005,
     enableLogging: false
   });
 
-  console.log('\n🔄 Comparison: Old vs New Subscription Methods\n');
+  console.log('\n🔄 Comparison: Unfiltered vs Content-Filtered Subscriptions\n');
 
-  // OLD WAY: Using callbacks with stream.on('data')
-  console.log('📜 Old way (callback-based):');
-  const oldSubscription = client.subscribeToEvents(
+  // Unfiltered: every event in the boundary.
+  console.log('📜 Unfiltered (whole boundary):');
+  const allSubscription = client.subscribeToEvents(
     {
-      subscriberName: 'old-subscriber',
-      boundary: 'demo-tenant',
-      stream: 'order-stream'
+      subscriberName: 'all-events-subscriber',
+      boundary: 'demo-tenant'
     },
     async (event: Event) => {
-      console.log(`  📨 Old: ${event.eventType}`);
-      // Events may be processed concurrently here
+      console.log(`  📨 All: ${event.eventType}`);
     },
     (error: Error) => {
-      console.error(`  ❌ Old error: ${error.message}`);
+      console.error(`  ❌ All error: ${error.message}`);
     }
   );
 
-  // NEW WAY: Using for await...of
-  console.log('✨ New way (async iteration):');
-  try {
-    await client.subscribeToEvents(
-      {
-        subscriberName: 'new-subscriber',
-        boundary: 'demo-tenant',
-        stream: 'order-stream'
-      },
-      async (event: Event) => {
-        console.log(`  📨 New: ${event.eventType}`);
-        // Events are guaranteed to be processed sequentially
-        await new Promise(resolve => setTimeout(resolve, 50));
-        console.log(`  ✅ New: Processed ${event.eventType}`);
-      },
-      (error: Error) => {
-        console.error(`  ❌ New error: ${error.message}`);
+  // Filtered: only events whose data matches the query criteria.
+  console.log('✨ Filtered (data.orderId = order-42):');
+  const orderSubscription = client.subscribeToEvents(
+    {
+      subscriberName: 'order-42-subscriber',
+      boundary: 'demo-tenant',
+      query: {
+        criteria: [{tags: [{key: 'orderId', value: 'order-42'}]}]
       }
-    );
-  } catch (error) {
-    console.log(`  🏁 New subscription ended: ${(error as Error).message}`);
-  }
+    },
+    async (event: Event) => {
+      console.log(`  📨 Order: ${event.eventType}`);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      console.log(`  ✅ Processed ${event.eventType}`);
+    },
+    (error: Error) => {
+      console.error(`  ❌ Order error: ${error.message}`);
+    }
+  );
 
+  // Let both run briefly, then tear down.
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  allSubscription.cancel();
+  orderSubscription.cancel();
   client.close();
 }
 

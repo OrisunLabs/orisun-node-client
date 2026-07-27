@@ -93,17 +93,22 @@ async function customLoggerExample() {
       return;
     }
 
+    // Query context: all events whose data.testId matches this run. Orisun
+    // defines context by event data content, not by a stream name.
+    const testId = `test-${Date.now()}`;
+    const testQuery = { criteria: [{ tags: [{ key: 'testId', value: testId }] }] };
+
     // Save an event (this will use the custom logger)
     await client.saveEvents({
       boundary: 'tenant-1',
-      stream: {
-        name: 'test-stream',
-        expectedVersion: 0 // Adding the required expectedVersion property
+      query: {
+        expectedPosition: { commitPosition: -1, preparePosition: -1 },
+        subsetQuery: testQuery
       },
       events: [{
         eventId: `event-${Date.now()}`,
         eventType: 'TestEvent',
-        data: { message: 'Testing custom logger' },
+        data: { testId, message: 'Testing custom logger' },
         metadata: { source: 'custom-logger-example' }
       }]
     });
@@ -111,9 +116,7 @@ async function customLoggerExample() {
     // Get events (this will use the custom logger)
     const events = await client.getEvents({
       boundary: 'tenant-1',
-      stream: {
-        name: 'test-stream'
-      }
+      query: testQuery
     });
 
     console.log(`Retrieved ${events.length} events`);
