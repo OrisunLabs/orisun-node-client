@@ -66,11 +66,17 @@ export interface AdminClientOptions {
 
 // Domain-specific interfaces matching admin.proto
 
+export interface BoundaryPermissionGrant {
+    boundary: string;
+    permissions: string[];
+}
+
 export interface AdminUser {
     userId: string;
     name: string;
     username: string;
     roles: string[];
+    boundaryPermissions?: BoundaryPermissionGrant[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -80,6 +86,7 @@ export interface CreateUserRequest {
     username: string;
     password: string;
     roles: string[];
+    boundaryPermissions?: BoundaryPermissionGrant[];
 }
 
 export interface CreateUserResponse {
@@ -102,6 +109,16 @@ export interface ChangePasswordRequest {
 
 export interface ChangePasswordResponse {
     success: boolean;
+}
+
+export interface SetUserBoundaryPermissionsRequest {
+    userId: string;
+    boundary: string;
+    permissions: string[];
+}
+
+export interface SetUserBoundaryPermissionsResponse {
+    user: AdminUser;
 }
 
 export interface ListUsersRequest {
@@ -247,6 +264,10 @@ function parseAdminUser(user: any): AdminUser {
         name: user.name,
         username: user.username,
         roles: user.roles || [],
+        boundaryPermissions: (user.boundary_permissions || []).map((grant: any) => ({
+            boundary: grant.boundary,
+            permissions: grant.permissions || []
+        })),
         createdAt: parseTimestamp(user.created_at),
         updatedAt: parseTimestamp(user.updated_at)
     };
@@ -472,7 +493,11 @@ export class AdminClient {
             name: request.name,
             username: request.username,
             password: request.password,
-            roles: request.roles
+            roles: request.roles,
+            boundary_permissions: (request.boundaryPermissions || []).map(grant => ({
+                boundary: grant.boundary,
+                permissions: grant.permissions
+            }))
         };
 
         try {
@@ -604,6 +629,58 @@ export class AdminClient {
         } catch (error) {
             this.logger.error(`Failed to change password:`, error);
             throw new Error(`Failed to change password: ${(error as Error).message}`);
+        }
+    }
+
+    /**
+     * Replace a user's permissions for one boundary. Pass an empty permission
+     * array to remove the grant.
+     */
+    async setUserBoundaryPermissions(
+        request: SetUserBoundaryPermissionsRequest
+    ): Promise<SetUserBoundaryPermissionsResponse> {
+        if (this.disposed) {
+            throw new Error('Client has been disposed');
+        }
+        if (!request) {
+            throw new Error('SetUserBoundaryPermissionsRequest cannot be null or undefined');
+        }
+        if (!request.userId) {
+            throw new Error('User ID is required');
+        }
+        if (!request.boundary) {
+            throw new Error('Boundary is required');
+        }
+        if (!Array.isArray(request.permissions)) {
+            throw new Error('Permissions must be an array');
+        }
+
+        const grpcRequest = {
+            user_id: request.userId,
+            boundary: request.boundary,
+            permissions: request.permissions
+        };
+
+        try {
+            const metadata = this.createAuthMetadata('set user boundary permissions');
+            const response = await new Promise<any>((resolve, reject) => {
+                const call = this.client.setUserBoundaryPermissions(
+                    grpcRequest,
+                    metadata,
+                    (error: any, response: any) => {
+                        if (error) {
+                            reject(error);
+                            return;
+                        }
+                        resolve(response);
+                    }
+                );
+                this.setupTokenCaching(call, 'set user boundary permissions response');
+            });
+            return {user: parseAdminUser(response.user)};
+        } catch (error) {
+            this.logger.error('Failed to set user boundary permissions:', error);
+            throw new Error(`Failed to set user boundary permissions: ${(error as Error).message}`);
         }
     }
 

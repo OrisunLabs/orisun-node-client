@@ -39,6 +39,7 @@ const grpc = __importStar(require("@grpc/grpc-js"));
 const mockCreateUser = jest.fn();
 const mockDeleteUser = jest.fn();
 const mockChangePassword = jest.fn();
+const mockSetUserBoundaryPermissions = jest.fn();
 const mockListUsers = jest.fn();
 const mockValidateCredentials = jest.fn();
 const mockGetUserCount = jest.fn();
@@ -50,6 +51,7 @@ const mockAdminClient = {
     createUser: mockCreateUser,
     deleteUser: mockDeleteUser,
     changePassword: mockChangePassword,
+    setUserBoundaryPermissions: mockSetUserBoundaryPermissions,
     listUsers: mockListUsers,
     validateCredentials: mockValidateCredentials,
     getUserCount: mockGetUserCount,
@@ -134,6 +136,30 @@ beforeEach(() => {
             })
         };
         callback(null, { success: true });
+        return mockCall;
+    });
+    mockSetUserBoundaryPermissions.mockImplementation((request, metadata, callback) => {
+        const mockCall = {
+            on: jest.fn((event, handler) => {
+                if (event === 'metadata') {
+                    handler(new grpc.Metadata());
+                }
+            })
+        };
+        callback(null, {
+            user: {
+                user_id: mockUser.userId,
+                name: mockUser.name,
+                username: mockUser.username,
+                roles: mockUser.roles,
+                boundary_permissions: [{
+                        boundary: request.boundary,
+                        permissions: request.permissions
+                    }],
+                created_at: { seconds: '1704067200', nanos: 0 },
+                updated_at: { seconds: '1704067200', nanos: 0 }
+            }
+        });
         return mockCall;
     });
     mockListUsers.mockImplementation((request, metadata, callback) => {
@@ -491,6 +517,45 @@ describe('AdminClient', () => {
                 currentPassword: 'old'
             };
             await expect(client.changePassword(request)).rejects.toThrow('New password is required');
+        });
+    });
+    describe('setUserBoundaryPermissions', () => {
+        it('replaces a boundary grant', async () => {
+            const response = await client.setUserBoundaryPermissions({
+                userId: 'user-123',
+                boundary: 'orders',
+                permissions: ['READ', 'APPEND']
+            });
+            expect(mockSetUserBoundaryPermissions.mock.calls[0][0]).toEqual({
+                user_id: 'user-123',
+                boundary: 'orders',
+                permissions: ['READ', 'APPEND']
+            });
+            expect(response.user.boundaryPermissions).toEqual([{
+                    boundary: 'orders',
+                    permissions: ['READ', 'APPEND']
+                }]);
+        });
+        it('accepts an empty permission list to remove a grant', async () => {
+            await client.setUserBoundaryPermissions({
+                userId: 'user-123',
+                boundary: 'orders',
+                permissions: []
+            });
+            const lastCall = mockSetUserBoundaryPermissions.mock.calls[mockSetUserBoundaryPermissions.mock.calls.length - 1];
+            expect(lastCall[0].permissions).toEqual([]);
+        });
+        it('validates the boundary and permission list', async () => {
+            await expect(client.setUserBoundaryPermissions({
+                userId: 'user-123',
+                boundary: '',
+                permissions: []
+            })).rejects.toThrow('Boundary is required');
+            await expect(client.setUserBoundaryPermissions({
+                userId: 'user-123',
+                boundary: 'orders',
+                permissions: null
+            })).rejects.toThrow('Permissions must be an array');
         });
     });
     describe('listUsers', () => {

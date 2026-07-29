@@ -203,6 +203,28 @@ function deserialize_orisun_ListUsersResponse(buffer_arg) {
   return admin_pb.ListUsersResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_orisun_SetUserBoundaryPermissionsRequest(arg) {
+  if (!(arg instanceof admin_pb.SetUserBoundaryPermissionsRequest)) {
+    throw new Error('Expected argument of type orisun.SetUserBoundaryPermissionsRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_SetUserBoundaryPermissionsRequest(buffer_arg) {
+  return admin_pb.SetUserBoundaryPermissionsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_orisun_SetUserBoundaryPermissionsResponse(arg) {
+  if (!(arg instanceof admin_pb.SetUserBoundaryPermissionsResponse)) {
+    throw new Error('Expected argument of type orisun.SetUserBoundaryPermissionsResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_SetUserBoundaryPermissionsResponse(buffer_arg) {
+  return admin_pb.SetUserBoundaryPermissionsResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_orisun_ValidateCredentialsRequest(arg) {
   if (!(arg instanceof admin_pb.ValidateCredentialsRequest)) {
     throw new Error('Expected argument of type orisun.ValidateCredentialsRequest');
@@ -295,6 +317,17 @@ createUser: {
     requestDeserialize: deserialize_orisun_ChangePasswordRequest,
     responseSerialize: serialize_orisun_ChangePasswordResponse,
     responseDeserialize: deserialize_orisun_ChangePasswordResponse,
+  },
+  setUserBoundaryPermissions: {
+    path: '/orisun.Admin/SetUserBoundaryPermissions',
+    requestStream: false,
+    responseStream: false,
+    requestType: admin_pb.SetUserBoundaryPermissionsRequest,
+    responseType: admin_pb.SetUserBoundaryPermissionsResponse,
+    requestSerialize: serialize_orisun_SetUserBoundaryPermissionsRequest,
+    requestDeserialize: deserialize_orisun_SetUserBoundaryPermissionsRequest,
+    responseSerialize: serialize_orisun_SetUserBoundaryPermissionsResponse,
+    responseDeserialize: deserialize_orisun_SetUserBoundaryPermissionsResponse,
   },
   listUsers: {
     path: '/orisun.Admin/ListUsers',

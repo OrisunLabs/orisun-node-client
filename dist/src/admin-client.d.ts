@@ -56,11 +56,16 @@ export interface AdminClientOptions {
      */
     enableLogging?: boolean;
 }
+export interface BoundaryPermissionGrant {
+    boundary: string;
+    permissions: string[];
+}
 export interface AdminUser {
     userId: string;
     name: string;
     username: string;
     roles: string[];
+    boundaryPermissions?: BoundaryPermissionGrant[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -69,6 +74,7 @@ export interface CreateUserRequest {
     username: string;
     password: string;
     roles: string[];
+    boundaryPermissions?: BoundaryPermissionGrant[];
 }
 export interface CreateUserResponse {
     user: AdminUser;
@@ -86,6 +92,14 @@ export interface ChangePasswordRequest {
 }
 export interface ChangePasswordResponse {
     success: boolean;
+}
+export interface SetUserBoundaryPermissionsRequest {
+    userId: string;
+    boundary: string;
+    permissions: string[];
+}
+export interface SetUserBoundaryPermissionsResponse {
+    user: AdminUser;
 }
 export interface ListUsersRequest {
 }
@@ -183,6 +197,11 @@ export declare class AdminClient {
      * Change a user's password
      */
     changePassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse>;
+    /**
+     * Replace a user's permissions for one boundary. Pass an empty permission
+     * array to remove the grant.
+     */
+    setUserBoundaryPermissions(request: SetUserBoundaryPermissionsRequest): Promise<SetUserBoundaryPermissionsResponse>;
     /**
      * List all users
      */

@@ -8,6 +8,12 @@ option java_package = "com.orisun.admin";
 import "google/protobuf/timestamp.proto";
 import "eventstore.proto";
 
+// BoundaryPermissionGrant replaces the permissions for one user and boundary.
+message BoundaryPermissionGrant {
+  string boundary = 1;
+  repeated string permissions = 2;
+}
+
 // AdminUser represents a user in the system
 message AdminUser {
   string user_id = 1;
@@ -16,6 +22,7 @@ message AdminUser {
   repeated string roles = 4;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
+  repeated BoundaryPermissionGrant boundary_permissions = 7;
 }
 
 // CreateUserRequest creates a new user
@@ -24,6 +31,7 @@ message CreateUserRequest {
   string username = 2;
   string password = 3;
   repeated string roles = 4;
+  repeated BoundaryPermissionGrant boundary_permissions = 5;
 }
 
 // CreateUserResponse returns the created user
@@ -51,6 +59,18 @@ message ChangePasswordRequest {
 // ChangePasswordResponse indicates success
 message ChangePasswordResponse {
   bool success = 1;
+}
+
+// SetUserBoundaryPermissionsRequest replaces one user's permissions for a
+// boundary. An empty permissions list removes the grant.
+message SetUserBoundaryPermissionsRequest {
+  string user_id = 1;
+  string boundary = 2;
+  repeated string permissions = 3;
+}
+
+message SetUserBoundaryPermissionsResponse {
+  AdminUser user = 1;
 }
 
 // ListUsersRequest lists all users
@@ -157,6 +177,7 @@ service Admin {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+  rpc SetUserBoundaryPermissions(SetUserBoundaryPermissionsRequest) returns (SetUserBoundaryPermissionsResponse);
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
 
   // Authentication

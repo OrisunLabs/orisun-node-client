@@ -16,6 +16,7 @@ interface IAdminService extends grpc.ServiceDefinition<grpc.UntypedServiceImplem
     createUser: IAdminService_ICreateUser;
     deleteUser: IAdminService_IDeleteUser;
     changePassword: IAdminService_IChangePassword;
+    setUserBoundaryPermissions: IAdminService_ISetUserBoundaryPermissions;
     listUsers: IAdminService_IListUsers;
     validateCredentials: IAdminService_IValidateCredentials;
     getUserCount: IAdminService_IGetUserCount;
@@ -76,6 +77,15 @@ interface IAdminService_IChangePassword extends grpc.MethodDefinition<admin_pb.C
     responseSerialize: grpc.serialize<admin_pb.ChangePasswordResponse>;
     responseDeserialize: grpc.deserialize<admin_pb.ChangePasswordResponse>;
 }
+interface IAdminService_ISetUserBoundaryPermissions extends grpc.MethodDefinition<admin_pb.SetUserBoundaryPermissionsRequest, admin_pb.SetUserBoundaryPermissionsResponse> {
+    path: "/orisun.Admin/SetUserBoundaryPermissions";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<admin_pb.SetUserBoundaryPermissionsRequest>;
+    requestDeserialize: grpc.deserialize<admin_pb.SetUserBoundaryPermissionsRequest>;
+    responseSerialize: grpc.serialize<admin_pb.SetUserBoundaryPermissionsResponse>;
+    responseDeserialize: grpc.deserialize<admin_pb.SetUserBoundaryPermissionsResponse>;
+}
 interface IAdminService_IListUsers extends grpc.MethodDefinition<admin_pb.ListUsersRequest, admin_pb.ListUsersResponse> {
     path: "/orisun.Admin/ListUsers";
     requestStream: false;
@@ -122,6 +132,7 @@ export interface IAdminServer extends grpc.UntypedServiceImplementation {
     createUser: grpc.handleUnaryCall<admin_pb.CreateUserRequest, admin_pb.CreateUserResponse>;
     deleteUser: grpc.handleUnaryCall<admin_pb.DeleteUserRequest, admin_pb.DeleteUserResponse>;
     changePassword: grpc.handleUnaryCall<admin_pb.ChangePasswordRequest, admin_pb.ChangePasswordResponse>;
+    setUserBoundaryPermissions: grpc.handleUnaryCall<admin_pb.SetUserBoundaryPermissionsRequest, admin_pb.SetUserBoundaryPermissionsResponse>;
     listUsers: grpc.handleUnaryCall<admin_pb.ListUsersRequest, admin_pb.ListUsersResponse>;
     validateCredentials: grpc.handleUnaryCall<admin_pb.ValidateCredentialsRequest, admin_pb.ValidateCredentialsResponse>;
     getUserCount: grpc.handleUnaryCall<admin_pb.GetUserCountRequest, admin_pb.GetUserCountResponse>;
@@ -147,6 +158,9 @@ export interface IAdminClient {
     changePassword(request: admin_pb.ChangePasswordRequest, callback: (error: grpc.ServiceError | null, response: admin_pb.ChangePasswordResponse) => void): grpc.ClientUnaryCall;
     changePassword(request: admin_pb.ChangePasswordRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: admin_pb.ChangePasswordResponse) => void): grpc.ClientUnaryCall;
     changePassword(request: admin_pb.ChangePasswordRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: admin_pb.ChangePasswordResponse) => void): grpc.ClientUnaryCall;
+    setUserBoundaryPermissions(request: admin_pb.SetUserBoundaryPermissionsRequest, callback: (error: grpc.ServiceError | null, response: admin_pb.SetUserBoundaryPermissionsResponse) => void): grpc.ClientUnaryCall;
+    setUserBoundaryPermissions(request: admin_pb.SetUserBoundaryPermissionsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: admin_pb.SetUserBoundaryPermissionsResponse) => void): grpc.ClientUnaryCall;
+    setUserBoundaryPermissions(request: admin_pb.SetUserBoundaryPermissionsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: admin_pb.SetUserBoundaryPermissionsResponse) => void): grpc.ClientUnaryCall;
     listUsers(request: admin_pb.ListUsersRequest, callback: (error: grpc.ServiceError | null, response: admin_pb.ListUsersResponse) => void): grpc.ClientUnaryCall;
     listUsers(request: admin_pb.ListUsersRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: admin_pb.ListUsersResponse) => void): grpc.ClientUnaryCall;
     listUsers(request: admin_pb.ListUsersRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: admin_pb.ListUsersResponse) => void): grpc.ClientUnaryCall;
@@ -181,6 +195,9 @@ export class AdminClient extends grpc.Client implements IAdminClient {
     public changePassword(request: admin_pb.ChangePasswordRequest, callback: (error: grpc.ServiceError | null, response: admin_pb.ChangePasswordResponse) => void): grpc.ClientUnaryCall;
     public changePassword(request: admin_pb.ChangePasswordRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: admin_pb.ChangePasswordResponse) => void): grpc.ClientUnaryCall;
     public changePassword(request: admin_pb.ChangePasswordRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: admin_pb.ChangePasswordResponse) => void): grpc.ClientUnaryCall;
+    public setUserBoundaryPermissions(request: admin_pb.SetUserBoundaryPermissionsRequest, callback: (error: grpc.ServiceError | null, response: admin_pb.SetUserBoundaryPermissionsResponse) => void): grpc.ClientUnaryCall;
+    public setUserBoundaryPermissions(request: admin_pb.SetUserBoundaryPermissionsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: admin_pb.SetUserBoundaryPermissionsResponse) => void): grpc.ClientUnaryCall;
+    public setUserBoundaryPermissions(request: admin_pb.SetUserBoundaryPermissionsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: admin_pb.SetUserBoundaryPermissionsResponse) => void): grpc.ClientUnaryCall;
     public listUsers(request: admin_pb.ListUsersRequest, callback: (error: grpc.ServiceError | null, response: admin_pb.ListUsersResponse) => void): grpc.ClientUnaryCall;
     public listUsers(request: admin_pb.ListUsersRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: admin_pb.ListUsersResponse) => void): grpc.ClientUnaryCall;
     public listUsers(request: admin_pb.ListUsersRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: admin_pb.ListUsersResponse) => void): grpc.ClientUnaryCall;
