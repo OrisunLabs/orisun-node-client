@@ -204,7 +204,7 @@ const {boundaries} = await admin.listBoundaries();
 catalog entry. The operation appends a durable definition event; a duplicate
 name returns `ALREADY_EXISTS`. Placement is backend-specific:
 
-- PostgreSQL/YugabyteDB: `{ backend: 'postgres', namespace: '<schema>' }`
+- PostgreSQL: `{ backend: 'postgres', namespace: '<schema>' }`
 - SQLite: `{ backend: 'sqlite', namespace: '<boundary-name>' }`
 - FoundationDB: `{ backend: 'foundationdb', namespace: '<ORISUN_FDB_ROOT>' }`
 
