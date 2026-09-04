@@ -27,6 +27,7 @@ export interface Criterion {
 export interface Query {
     criteria: Criterion[];
 }
+/** @deprecated Use SaveEventsV2Request. */
 export interface SaveEventsRequest {
     boundary: string;
     query: {
@@ -35,10 +36,12 @@ export interface SaveEventsRequest {
     };
     events: EventToSave[];
 }
+/** One complete query paired with its latest observed matching position. */
 export interface ConsistencyObservation {
     query: Query;
     position: Position;
 }
+/** An atomic event batch guarded by zero or more query-level observations. */
 export interface SaveEventsV2Request {
     boundary: string;
     events: EventToSave[];
@@ -245,16 +248,16 @@ export declare class EventStoreClient {
      */
     saveEventsV2(request: SaveEventsV2Request): Promise<WriteResult>;
     /**
-     * Get events from a stream
+     * Get events from a boundary
      * @throws {Error} If the request is invalid or the operation fails
      */
     getEvents(request: GetEventsRequest): Promise<Event[]>;
     /**
      * Get the latest event matching each criterion from one server-side read snapshot.
      *
-     * Use the returned contextPosition as SaveEvents.query.expectedPosition with
-     * the same combined criteria. Independent getEvents calls are not equivalent
-     * for multi-criterion command contexts because they observe separate snapshots.
+     * Pair the returned contextPosition with the same combined criteria as one
+     * SaveEventsV2 consistency observation. The position belongs to the complete
+     * OR query, not to an individual criterion.
      */
     getLatestByCriteria(request: GetLatestByCriteriaRequest): Promise<GetLatestByCriteriaResponse>;
     /**

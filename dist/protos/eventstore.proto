@@ -7,6 +7,8 @@ option java_package = "com.orisun.eventstore";
 
 import "google/protobuf/timestamp.proto";
 
+// Position identifies one event in a boundary's total order. For consistency,
+// (-1, -1) means that the observed query had no match.
 message Position {
   int64 commit_position = 1;
   int64 prepare_position = 2;
@@ -44,6 +46,7 @@ message Event {
 }
 
 message WriteResult {
+  // Position of the last event in the committed batch.
   Position log_position = 1;
 }
 
@@ -78,8 +81,12 @@ message SaveEventsRequest {
 }
 
 message SaveEventsV2Request {
+  // Active boundary receiving this atomic event batch.
   string boundary = 1;
+  // One or more events. Every event commits or none does.
   repeated EventToSave events = 2;
+  // Complete query observations that must all still be current. Empty means an
+  // unconditional append.
   repeated ConsistencyObservation consistency = 3;
 }
 
@@ -132,13 +139,10 @@ message GetServerInfoResponse {
   repeated ServerCapability capabilities = 6;
 }
 
-// GetLatestByCriteria returns the latest event matching each criterion,
-// assembled by the server from ONE consistent read snapshot, plus the
-// context_position to use as SaveEvents.query.expected_position with the same
-// combined criteria. Assembling the same context from independent GetEvents
-// calls is not equivalent: an event can commit between the calls with a
-// position below the observed maximum, and a scalar expected position cannot
-// detect that.
+// GetLatestByCriteria returns the latest event matching each criterion from one
+// read snapshot. context_position is the latest match across the complete OR
+// criteria list. Pair the exact criteria, wrapped in one Query, with that
+// position to create one SaveEventsV2 consistency observation.
 message GetLatestByCriteriaRequest {
   string boundary = 1;
   repeated Criterion criteria = 2;
@@ -237,6 +241,8 @@ service EventStore {
   // Deprecated compatibility RPC. The server translates this request into one
   // SaveEventsV2 operation.
   rpc SaveEvents(SaveEventsRequest) returns (WriteResult) { option deprecated = true; }
+  // Atomically validate every query-level observation and append the event
+  // batch. An empty consistency list is an unconditional append.
   rpc SaveEventsV2(SaveEventsV2Request) returns (WriteResult) {}
   rpc GetEvents(GetEventsRequest) returns (GetEventsResponse) {}
   rpc GetLatestByCriteria(GetLatestByCriteriaRequest) returns (GetLatestByCriteriaResponse) {}

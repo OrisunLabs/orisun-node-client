@@ -393,7 +393,7 @@ class EventStoreClient {
         return this.invokeSave('saveEventsV2', grpcRequest, request.events.length);
     }
     /**
-     * Get events from a stream
+     * Get events from a boundary
      * @throws {Error} If the request is invalid or the operation fails
      */
     async getEvents(request) {
@@ -465,9 +465,9 @@ class EventStoreClient {
     /**
      * Get the latest event matching each criterion from one server-side read snapshot.
      *
-     * Use the returned contextPosition as SaveEvents.query.expectedPosition with
-     * the same combined criteria. Independent getEvents calls are not equivalent
-     * for multi-criterion command contexts because they observe separate snapshots.
+     * Pair the returned contextPosition with the same combined criteria as one
+     * SaveEventsV2 consistency observation. The position belongs to the complete
+     * OR query, not to an individual criterion.
      */
     async getLatestByCriteria(request) {
         if (this.disposed) {

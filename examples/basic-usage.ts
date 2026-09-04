@@ -79,18 +79,17 @@ async function basicUsageExample() {
             criteria: [{tags: [{key: 'userId', value: userId}]}]
         };
 
-        // Save events. expectedPosition {-1, -1} asserts the context is empty
-        // (no prior events match the query) — CCC optimistic concurrency.
+        // Save events only if the user context is still empty.
         console.log(`Saving events for ${userId}...`);
-        const writeResult: WriteResult = await client.saveEvents({
+        const writeResult: WriteResult = await client.saveEventsV2({
             boundary: 'orisun_test_2',
-            query: {
-                expectedPosition: {
+            consistency: [{
+                position: {
                     commitPosition: -1,
                     preparePosition: -1
                 },
-                subsetQuery: userQuery
-            },
+                query: userQuery
+            }],
             events: events
         });
         console.log('Events saved successfully!');

@@ -107,15 +107,14 @@ async function integrationExample() {
       }
     ];
 
-    // Save events for the order. expectedPosition {-1,-1} asserts no prior
-    // events match orderQuery (fresh context) — CCC optimistic concurrency.
+    // Save events only if no prior event matches this order context.
     console.log(`📝 Saving ${orderEvents.length} events for order: ${orderId}`);
-    const writeResult: WriteResult = await client.saveEvents({
+    const writeResult: WriteResult = await client.saveEventsV2({
       boundary,
-      query: {
-        expectedPosition: { commitPosition: -1, preparePosition: -1 },
-        subsetQuery: orderQuery
-      },
+      consistency: [{
+        position: { commitPosition: -1, preparePosition: -1 },
+        query: orderQuery
+      }],
       events: orderEvents
     });
     console.log('✅ Events saved successfully!');
@@ -161,17 +160,20 @@ async function integrationExample() {
       }
     );
 
-    // Add one more event to trigger the subscription. expectedPosition is the
-    // context position returned by the first save, asserting nothing else has
-    // touched this order's context since.
+    // Read the order context again before deciding to add another event. The
+    // write receipt above is not a general substitute for an observed context.
     setTimeout(async () => {
       console.log('\n📝 Adding one more event to trigger subscription...');
-      const additionalWriteResult: WriteResult = await client.saveEvents({
+      const current = await client.getLatestByCriteria({
         boundary,
-        query: {
-          expectedPosition: writeResult.logPosition,
-          subsetQuery: orderQuery
-        },
+        criteria: orderQuery.criteria
+      });
+      const additionalWriteResult: WriteResult = await client.saveEventsV2({
+        boundary,
+        consistency: [{
+          position: current.contextPosition,
+          query: orderQuery
+        }],
         events: [{
           eventId: randomUUID(),
           eventType: 'OrderDelivered',

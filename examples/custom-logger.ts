@@ -99,12 +99,12 @@ async function customLoggerExample() {
     const testQuery = { criteria: [{ tags: [{ key: 'testId', value: testId }] }] };
 
     // Save an event (this will use the custom logger)
-    await client.saveEvents({
+    await client.saveEventsV2({
       boundary: 'tenant-1',
-      query: {
-        expectedPosition: { commitPosition: -1, preparePosition: -1 },
-        subsetQuery: testQuery
-      },
+      consistency: [{
+        position: { commitPosition: -1, preparePosition: -1 },
+        query: testQuery
+      }],
       events: [{
         eventId: `event-${Date.now()}`,
         eventType: 'TestEvent',

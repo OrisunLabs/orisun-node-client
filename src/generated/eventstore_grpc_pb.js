@@ -250,7 +250,9 @@ saveEvents: {
     responseSerialize: serialize_orisun_WriteResult,
     responseDeserialize: deserialize_orisun_WriteResult,
   },
-  saveEventsV2: {
+  // Atomically validate every query-level observation and append the event
+// batch. An empty consistency list is an unconditional append.
+saveEventsV2: {
     path: '/orisun.EventStore/SaveEventsV2',
     requestStream: false,
     responseStream: false,
