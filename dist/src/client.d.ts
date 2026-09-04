@@ -35,6 +35,15 @@ export interface SaveEventsRequest {
     };
     events: EventToSave[];
 }
+export interface ConsistencyObservation {
+    query: Query;
+    position: Position;
+}
+export interface SaveEventsV2Request {
+    boundary: string;
+    events: EventToSave[];
+    consistency?: ConsistencyObservation[];
+}
 export interface GetEventsRequest {
     query?: Query;
     fromPosition?: Position;
@@ -221,12 +230,20 @@ export declare class EventStoreClient {
      */
     private setupTokenCaching;
     private mapEvent;
+    private validateSaveRequest;
+    private grpcEvents;
+    private invokeSave;
     /**
-     * Save events to a stream
+     * Save events to a boundary.
+     * @deprecated Use saveEventsV2.
      * @throws {Error} If the request is invalid or the operation fails
      * @returns {Promise<WriteResult>} The write result containing the log position
      */
     saveEvents(request: SaveEventsRequest): Promise<WriteResult>;
+    /**
+     * Save events after atomically validating every consistency observation.
+     */
+    saveEventsV2(request: SaveEventsV2Request): Promise<WriteResult>;
     /**
      * Get events from a stream
      * @throws {Error} If the request is invalid or the operation fails

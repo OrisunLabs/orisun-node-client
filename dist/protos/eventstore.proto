@@ -18,10 +18,12 @@ message Tag {
 }
 
 message Criterion {
+  // All tags in one criterion must match.
   repeated Tag tags = 1;
 }
 
 message Query {
+  // An event matches when it matches any criterion.
   repeated Criterion criteria = 1;
 }
 
@@ -50,15 +52,35 @@ enum Direction {
   DESC = 1;
 }
 
-message SaveQuery{
+// SaveQuery is the consistency shape used by the deprecated SaveEvents RPC.
+message SaveQuery {
+  option deprecated = true;
   Position expected_position = 1;
   Query subsetQuery = 2;
 }
 
+// ConsistencyObservation records the latest position observed for one complete
+// query. SaveEventsV2 requires every supplied observation to remain current.
+message ConsistencyObservation {
+  // The complete OR query whose latest matching position was observed. Every
+  // criterion and every tag within it must be non-empty.
+  Query query = 1;
+  // Position of the newest event matching the complete query, or (-1, -1)
+  // when the query matched no event.
+  Position position = 2;
+}
+
 message SaveEventsRequest {
+  option deprecated = true;
   string boundary = 2;
   SaveQuery query = 3;
   repeated EventToSave events = 4;
+}
+
+message SaveEventsV2Request {
+  string boundary = 1;
+  repeated EventToSave events = 2;
+  repeated ConsistencyObservation consistency = 3;
 }
 
 message GetEventsRequest {
@@ -212,7 +234,10 @@ message GetIndexResponse {
 }
 
 service EventStore {
-  rpc SaveEvents(SaveEventsRequest) returns (WriteResult) {}
+  // Deprecated compatibility RPC. The server translates this request into one
+  // SaveEventsV2 operation.
+  rpc SaveEvents(SaveEventsRequest) returns (WriteResult) { option deprecated = true; }
+  rpc SaveEventsV2(SaveEventsV2Request) returns (WriteResult) {}
   rpc GetEvents(GetEventsRequest) returns (GetEventsResponse) {}
   rpc GetLatestByCriteria(GetLatestByCriteriaRequest) returns (GetLatestByCriteriaResponse) {}
   rpc CatchUpSubscribeToEvents(CatchUpSubscribeToEventStoreRequest) returns (stream Event) {}

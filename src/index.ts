@@ -3,6 +3,8 @@ export {
   Event,
   EventToSave,
   SaveEventsRequest,
+  SaveEventsV2Request,
+  ConsistencyObservation,
   GetEventsRequest,
   GetLatestByCriteriaRequest,
   GetLatestByCriteriaResponse,

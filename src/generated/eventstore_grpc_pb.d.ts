@@ -10,6 +10,7 @@ import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/t
 
 interface IEventStoreService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
     saveEvents: IEventStoreService_ISaveEvents;
+    saveEventsV2: IEventStoreService_ISaveEventsV2;
     getEvents: IEventStoreService_IGetEvents;
     getLatestByCriteria: IEventStoreService_IGetLatestByCriteria;
     catchUpSubscribeToEvents: IEventStoreService_ICatchUpSubscribeToEvents;
@@ -27,6 +28,15 @@ interface IEventStoreService_ISaveEvents extends grpc.MethodDefinition<eventstor
     responseStream: false;
     requestSerialize: grpc.serialize<eventstore_pb.SaveEventsRequest>;
     requestDeserialize: grpc.deserialize<eventstore_pb.SaveEventsRequest>;
+    responseSerialize: grpc.serialize<eventstore_pb.WriteResult>;
+    responseDeserialize: grpc.deserialize<eventstore_pb.WriteResult>;
+}
+interface IEventStoreService_ISaveEventsV2 extends grpc.MethodDefinition<eventstore_pb.SaveEventsV2Request, eventstore_pb.WriteResult> {
+    path: "/orisun.EventStore/SaveEventsV2";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<eventstore_pb.SaveEventsV2Request>;
+    requestDeserialize: grpc.deserialize<eventstore_pb.SaveEventsV2Request>;
     responseSerialize: grpc.serialize<eventstore_pb.WriteResult>;
     responseDeserialize: grpc.deserialize<eventstore_pb.WriteResult>;
 }
@@ -116,6 +126,7 @@ export const EventStoreService: IEventStoreService;
 
 export interface IEventStoreServer extends grpc.UntypedServiceImplementation {
     saveEvents: grpc.handleUnaryCall<eventstore_pb.SaveEventsRequest, eventstore_pb.WriteResult>;
+    saveEventsV2: grpc.handleUnaryCall<eventstore_pb.SaveEventsV2Request, eventstore_pb.WriteResult>;
     getEvents: grpc.handleUnaryCall<eventstore_pb.GetEventsRequest, eventstore_pb.GetEventsResponse>;
     getLatestByCriteria: grpc.handleUnaryCall<eventstore_pb.GetLatestByCriteriaRequest, eventstore_pb.GetLatestByCriteriaResponse>;
     catchUpSubscribeToEvents: grpc.handleServerStreamingCall<eventstore_pb.CatchUpSubscribeToEventStoreRequest, eventstore_pb.Event>;
@@ -131,6 +142,9 @@ export interface IEventStoreClient {
     saveEvents(request: eventstore_pb.SaveEventsRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
     saveEvents(request: eventstore_pb.SaveEventsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
     saveEvents(request: eventstore_pb.SaveEventsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
+    saveEventsV2(request: eventstore_pb.SaveEventsV2Request, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
+    saveEventsV2(request: eventstore_pb.SaveEventsV2Request, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
+    saveEventsV2(request: eventstore_pb.SaveEventsV2Request, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
     getEvents(request: eventstore_pb.GetEventsRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetEventsResponse) => void): grpc.ClientUnaryCall;
     getEvents(request: eventstore_pb.GetEventsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetEventsResponse) => void): grpc.ClientUnaryCall;
     getEvents(request: eventstore_pb.GetEventsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetEventsResponse) => void): grpc.ClientUnaryCall;
@@ -164,6 +178,9 @@ export class EventStoreClient extends grpc.Client implements IEventStoreClient {
     public saveEvents(request: eventstore_pb.SaveEventsRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
     public saveEvents(request: eventstore_pb.SaveEventsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
     public saveEvents(request: eventstore_pb.SaveEventsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
+    public saveEventsV2(request: eventstore_pb.SaveEventsV2Request, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
+    public saveEventsV2(request: eventstore_pb.SaveEventsV2Request, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
+    public saveEventsV2(request: eventstore_pb.SaveEventsV2Request, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.WriteResult) => void): grpc.ClientUnaryCall;
     public getEvents(request: eventstore_pb.GetEventsRequest, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetEventsResponse) => void): grpc.ClientUnaryCall;
     public getEvents(request: eventstore_pb.GetEventsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetEventsResponse) => void): grpc.ClientUnaryCall;
     public getEvents(request: eventstore_pb.GetEventsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventstore_pb.GetEventsResponse) => void): grpc.ClientUnaryCall;

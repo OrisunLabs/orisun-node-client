@@ -11,6 +11,7 @@ import * as grpc from '@grpc/grpc-js';
 
 // Mock gRPC and protobuf modules
 const mockSaveEvents = jest.fn();
+const mockSaveEventsV2 = jest.fn();
 const mockGetEvents = jest.fn();
 const mockGetLatestByCriteria = jest.fn();
 const mockCatchUpSubscribeToEvents = jest.fn();
@@ -19,6 +20,7 @@ const mockGetServerInfo = jest.fn();
 
 const mockEventStoreClient = {
     saveEvents: mockSaveEvents,
+    saveEventsV2: mockSaveEventsV2,
     getEvents: mockGetEvents,
     getLatestByCriteria: mockGetLatestByCriteria,
     catchUpSubscribeToEvents: mockCatchUpSubscribeToEvents,
@@ -64,6 +66,15 @@ beforeEach(() => {
                 prepare_position: '123'
             },
             new_stream_version: '123'
+        });
+    });
+
+    mockSaveEventsV2.mockImplementation((request, metadata, callback) => {
+        callback(null, {
+            log_position: {
+                commit_position: '124',
+                prepare_position: '124'
+            }
         });
     });
 
@@ -349,6 +360,59 @@ describe('EventStoreClient', () => {
                 expect.any(Object),
                 expect.any(Function)
             );
+        });
+    });
+
+    describe('saveEventsV2', () => {
+        it('sends every query-level consistency observation', async () => {
+            const consistency = [
+                {
+                    query: {
+                        criteria: [
+                            {tags: [{key: 'warehouseId', value: 'warehouse-1'}]},
+                            {tags: [{key: 'shipmentId', value: 'shipment-9'}]}
+                        ]
+                    },
+                    position: {commitPosition: 12, preparePosition: 12}
+                },
+                {
+                    query: {criteria: [{tags: [{key: 'carrierId', value: 'carrier-2'}]}]},
+                    position: {commitPosition: 8, preparePosition: 8}
+                }
+            ];
+
+            const result = await client.saveEventsV2({
+                boundary: 'shipping',
+                events: [{eventId: 'event-1', eventType: 'ShipmentDispatched', data: {shipmentId: 'shipment-9'}}],
+                consistency
+            });
+
+            expect(result.logPosition).toEqual({commitPosition: 124, preparePosition: 124});
+            expect(mockSaveEventsV2).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    boundary: 'shipping',
+                    consistency: [
+                        expect.objectContaining({
+                            query: consistency[0].query,
+                            position: {commit_position: 12, prepare_position: 12}
+                        }),
+                        expect.objectContaining({
+                            query: consistency[1].query,
+                            position: {commit_position: 8, prepare_position: 8}
+                        })
+                    ]
+                }),
+                expect.any(Object),
+                expect.any(Function)
+            );
+        });
+
+        it('rejects an incomplete observation', async () => {
+            await expect(client.saveEventsV2({
+                boundary: 'shipping',
+                events: [{eventId: 'event-1', eventType: 'ShipmentDispatched', data: {}}],
+                consistency: [{query: {criteria: []}, position: {commitPosition: -1, preparePosition: -1}}]
+            })).rejects.toThrow('must include at least one criterion');
         });
     });
 

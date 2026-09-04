@@ -48,6 +48,17 @@ export interface SaveEventsRequest {
     events: EventToSave[];
 }
 
+export interface ConsistencyObservation {
+    query: Query;
+    position: Position;
+}
+
+export interface SaveEventsV2Request {
+    boundary: string;
+    events: EventToSave[];
+    consistency?: ConsistencyObservation[];
+}
+
 export interface GetEventsRequest {
     query?: Query;
     fromPosition?: Position;
@@ -490,30 +501,19 @@ export class EventStoreClient {
         }
     }
 
-    /**
-     * Save events to a stream
-     * @throws {Error} If the request is invalid or the operation fails
-     * @returns {Promise<WriteResult>} The write result containing the log position
-     */
-    async saveEvents(request: SaveEventsRequest): Promise<WriteResult> {
-        // Check if client is disposed
+    private validateSaveRequest(request: {boundary: string; events: EventToSave[]} | null | undefined, requestName: string): void {
         if (this.disposed) {
             throw new Error('Client has been disposed');
         }
-
         if (!request) {
-            throw new Error('SaveEventsRequest cannot be null or undefined');
+            throw new Error(`${requestName} cannot be null or undefined`);
         }
-
         if (!request.boundary) {
             throw new Error('Boundary is required');
         }
-
         if (!request.events || !Array.isArray(request.events) || request.events.length === 0) {
             throw new Error('At least one event is required');
         }
-
-        // Validate each event
         request.events.forEach((event, index) => {
             if (!event.eventId) {
                 throw new Error(`Event at index ${index} is missing eventId`);
@@ -525,6 +525,56 @@ export class EventStoreClient {
                 throw new Error(`Event at index ${index} is missing data`);
             }
         });
+    }
+
+    private grpcEvents(events: EventToSave[]): any[] {
+        return events.map(event => ({
+            event_id: event.eventId,
+            event_type: event.eventType,
+            data: JSON.stringify(event.data),
+            metadata: JSON.stringify(event.metadata || {})
+        }));
+    }
+
+    private async invokeSave(method: 'saveEvents' | 'saveEventsV2', grpcRequest: any, eventCount: number): Promise<WriteResult> {
+        try {
+            const operation = method === 'saveEventsV2' ? 'save events v2' : 'save events';
+            const metadata = this.createAuthMetadata(operation);
+            const response = await new Promise<any>((resolve, reject) => {
+                const call = this.client[method](grpcRequest, metadata, (error: any, result: any) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(result);
+                });
+                this.setupTokenCaching(call, `${operation} response`);
+            });
+
+            return {
+                logPosition: {
+                    commitPosition: Number(response.log_position?.commit_position ?? '0'),
+                    preparePosition: Number(response.log_position?.prepare_position ?? '0')
+                }
+            };
+        } catch (error) {
+            this.logger.error('Failed to save events:', error);
+            const enhancedError = new Error(`Failed to save events: ${(error as Error).message}`);
+            enhancedError.stack = (error as Error).stack;
+            (enhancedError as any).originalError = error;
+            (enhancedError as any).eventCount = eventCount;
+            throw enhancedError;
+        }
+    }
+
+    /**
+     * Save events to a boundary.
+     * @deprecated Use saveEventsV2.
+     * @throws {Error} If the request is invalid or the operation fails
+     * @returns {Promise<WriteResult>} The write result containing the log position
+     */
+    async saveEvents(request: SaveEventsRequest): Promise<WriteResult> {
+        this.validateSaveRequest(request, 'SaveEventsRequest');
 
         this.logger.debug(`Saving ${request.events.length} events`);
 
@@ -538,55 +588,45 @@ export class EventStoreClient {
                 } : null,
                 ...(request.query.subsetQuery && {subsetQuery: request.query.subsetQuery})
             },
-            events: request.events.map(event => ({
-                event_id: event.eventId,
-                event_type: event.eventType,
-                data: JSON.stringify(event.data),
-                metadata: JSON.stringify(event.metadata || {})
+            events: this.grpcEvents(request.events)
+        };
+        return this.invokeSave('saveEvents', grpcRequest, request.events.length);
+    }
+
+    /**
+     * Save events after atomically validating every consistency observation.
+     */
+    async saveEventsV2(request: SaveEventsV2Request): Promise<WriteResult> {
+        this.validateSaveRequest(request, 'SaveEventsV2Request');
+
+        const consistency = request.consistency || [];
+        consistency.forEach((observation, observationIndex) => {
+            if (!observation?.query || !observation.position) {
+                throw new Error(`Consistency observation at index ${observationIndex} must include query and position`);
+            }
+            if (!Array.isArray(observation.query.criteria) || observation.query.criteria.length === 0) {
+                throw new Error(`Consistency observation at index ${observationIndex} must include at least one criterion`);
+            }
+            observation.query.criteria.forEach((criterion, criterionIndex) => {
+                if (!criterion || !Array.isArray(criterion.tags) || criterion.tags.length === 0) {
+                    throw new Error(`Criterion at index ${criterionIndex} in consistency observation ${observationIndex} must include at least one tag`);
+                }
+            });
+        });
+
+        const grpcRequest = {
+            boundary: request.boundary,
+            events: this.grpcEvents(request.events),
+            consistency: consistency.map(observation => ({
+                query: observation.query,
+                position: {
+                    commit_position: observation.position.commitPosition,
+                    prepare_position: observation.position.preparePosition
+                }
             }))
         };
 
-        try {
-            // Create metadata with authentication
-            const metadata = this.createAuthMetadata('save events');
-
-            // Use callback-based API to access response headers
-            const response = await new Promise<any>((resolve, reject) => {
-                const call = this.client.saveEvents(grpcRequest, metadata, (error: any, response: any, responseMetadata: grpc.Metadata) => {
-                    if (error) {
-                        reject(error);
-                        return;
-                    }
-
-                    resolve(response);
-                });
-
-                // Set up token caching from response metadata
-                this.setupTokenCaching(call, 'save events response');
-            });
-
-            this.logger.info(`Successfully saved events`);
-
-            // Transform the gRPC response to match our interface
-            return {
-                logPosition: {
-                    commitPosition: Number(response.log_position?.commit_position || '0'),
-                    preparePosition: Number(response.log_position?.prepare_position || '0')
-                }
-            };
-        } catch (error) {
-            this.logger.error(`Failed to save events: `, error);
-
-            // Enhance error with context
-            const enhancedError = new Error(
-                `Failed to save events to stream: ${(error as Error).message}`
-            );
-            enhancedError.stack = (error as Error).stack;
-            (enhancedError as any).originalError = error;
-            (enhancedError as any).eventCount = request.events.length;
-
-            throw enhancedError;
-        }
+        return this.invokeSave('saveEventsV2', grpcRequest, request.events.length);
     }
 
     /**
