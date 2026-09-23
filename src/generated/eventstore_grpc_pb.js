@@ -158,6 +158,17 @@ function deserialize_orisun_GetServerInfoResponse(buffer_arg) {
   return eventstore_pb.GetServerInfoResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_orisun_GetWriteContextRequest(arg) {
+  if (!(arg instanceof eventstore_pb.GetWriteContextRequest)) {
+    throw new Error('Expected argument of type orisun.GetWriteContextRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_GetWriteContextRequest(buffer_arg) {
+  return eventstore_pb.GetWriteContextRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_orisun_ListIndexesRequest(arg) {
   if (!(arg instanceof eventstore_pb.ListIndexesRequest)) {
     throw new Error('Expected argument of type orisun.ListIndexesRequest');
@@ -224,6 +235,17 @@ function deserialize_orisun_SaveEventsV2Request(buffer_arg) {
   return eventstore_pb.SaveEventsV2Request.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_orisun_WriteContext(arg) {
+  if (!(arg instanceof eventstore_pb.WriteContext)) {
+    throw new Error('Expected argument of type orisun.WriteContext');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_orisun_WriteContext(buffer_arg) {
+  return eventstore_pb.WriteContext.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_orisun_WriteResult(arg) {
   if (!(arg instanceof eventstore_pb.WriteResult)) {
     throw new Error('Expected argument of type orisun.WriteResult');
@@ -262,6 +284,17 @@ saveEventsV2: {
     requestDeserialize: deserialize_orisun_SaveEventsV2Request,
     responseSerialize: serialize_orisun_WriteResult,
     responseDeserialize: deserialize_orisun_WriteResult,
+  },
+  getWriteContext: {
+    path: '/orisun.EventStore/GetWriteContext',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventstore_pb.GetWriteContextRequest,
+    responseType: eventstore_pb.WriteContext,
+    requestSerialize: serialize_orisun_GetWriteContextRequest,
+    requestDeserialize: deserialize_orisun_GetWriteContextRequest,
+    responseSerialize: serialize_orisun_WriteContext,
+    responseDeserialize: deserialize_orisun_WriteContext,
   },
   getEvents: {
     path: '/orisun.EventStore/GetEvents',

@@ -43,11 +43,14 @@ message Event {
   string metadata = 4;
   Position position = 6;
   google.protobuf.Timestamp date_created = 7;
+  // Empty for historical events whose write context was not recorded.
+  string write_id = 8;
 }
 
 message WriteResult {
   // Position of the last event in the committed batch.
   Position log_position = 1;
+  string write_id = 2;
 }
 
 enum Direction {
@@ -88,6 +91,18 @@ message SaveEventsV2Request {
   // Complete query observations that must all still be current. Empty means an
   // unconditional append.
   repeated ConsistencyObservation consistency = 3;
+}
+
+message GetWriteContextRequest {
+  string boundary = 1;
+  string write_id = 2;
+}
+
+// Store-owned conditions checked when accepting one atomic save.
+message WriteContext {
+  string write_id = 1;
+  // Empty means an unconditional append. Historical events have no record.
+  repeated ConsistencyObservation consistency = 2;
 }
 
 message GetEventsRequest {
@@ -244,6 +259,7 @@ service EventStore {
   // Atomically validate every query-level observation and append the event
   // batch. An empty consistency list is an unconditional append.
   rpc SaveEventsV2(SaveEventsV2Request) returns (WriteResult) {}
+  rpc GetWriteContext(GetWriteContextRequest) returns (WriteContext) {}
   rpc GetEvents(GetEventsRequest) returns (GetEventsResponse) {}
   rpc GetLatestByCriteria(GetLatestByCriteriaRequest) returns (GetLatestByCriteriaResponse) {}
   rpc CatchUpSubscribeToEvents(CatchUpSubscribeToEventStoreRequest) returns (stream Event) {}

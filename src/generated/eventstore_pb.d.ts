@@ -145,6 +145,8 @@ export class Event extends jspb.Message {
     clearDateCreated(): void;
     getDateCreated(): google_protobuf_timestamp_pb.Timestamp | undefined;
     setDateCreated(value?: google_protobuf_timestamp_pb.Timestamp): Event;
+    getWriteId(): string;
+    setWriteId(value: string): Event;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Event.AsObject;
@@ -164,6 +166,7 @@ export namespace Event {
         metadata: string,
         position?: Position.AsObject,
         dateCreated?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+        writeId: string,
     }
 }
 
@@ -173,6 +176,8 @@ export class WriteResult extends jspb.Message {
     clearLogPosition(): void;
     getLogPosition(): Position | undefined;
     setLogPosition(value?: Position): WriteResult;
+    getWriteId(): string;
+    setWriteId(value: string): WriteResult;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): WriteResult.AsObject;
@@ -187,6 +192,7 @@ export class WriteResult extends jspb.Message {
 export namespace WriteResult {
     export type AsObject = {
         logPosition?: Position.AsObject,
+        writeId: string,
     }
 }
 
@@ -305,6 +311,54 @@ export namespace SaveEventsV2Request {
     export type AsObject = {
         boundary: string,
         eventsList: Array<EventToSave.AsObject>,
+        consistencyList: Array<ConsistencyObservation.AsObject>,
+    }
+}
+
+export class GetWriteContextRequest extends jspb.Message {
+    getBoundary(): string;
+    setBoundary(value: string): GetWriteContextRequest;
+    getWriteId(): string;
+    setWriteId(value: string): GetWriteContextRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetWriteContextRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetWriteContextRequest): GetWriteContextRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetWriteContextRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetWriteContextRequest;
+    static deserializeBinaryFromReader(message: GetWriteContextRequest, reader: jspb.BinaryReader): GetWriteContextRequest;
+}
+
+export namespace GetWriteContextRequest {
+    export type AsObject = {
+        boundary: string,
+        writeId: string,
+    }
+}
+
+export class WriteContext extends jspb.Message {
+    getWriteId(): string;
+    setWriteId(value: string): WriteContext;
+    clearConsistencyList(): void;
+    getConsistencyList(): Array<ConsistencyObservation>;
+    setConsistencyList(value: Array<ConsistencyObservation>): WriteContext;
+    addConsistency(value?: ConsistencyObservation, index?: number): ConsistencyObservation;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): WriteContext.AsObject;
+    static toObject(includeInstance: boolean, msg: WriteContext): WriteContext.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: WriteContext, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): WriteContext;
+    static deserializeBinaryFromReader(message: WriteContext, reader: jspb.BinaryReader): WriteContext;
+}
+
+export namespace WriteContext {
+    export type AsObject = {
+        writeId: string,
         consistencyList: Array<ConsistencyObservation.AsObject>,
     }
 }

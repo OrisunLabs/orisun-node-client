@@ -39,6 +39,7 @@ const grpc = __importStar(require("@grpc/grpc-js"));
 const mockSaveEvents = jest.fn();
 const mockSaveEventsV2 = jest.fn();
 const mockGetEvents = jest.fn();
+const mockGetWriteContext = jest.fn();
 const mockGetLatestByCriteria = jest.fn();
 const mockCatchUpSubscribeToEvents = jest.fn();
 const mockPing = jest.fn();
@@ -47,6 +48,7 @@ const mockEventStoreClient = {
     saveEvents: mockSaveEvents,
     saveEventsV2: mockSaveEventsV2,
     getEvents: mockGetEvents,
+    getWriteContext: mockGetWriteContext,
     getLatestByCriteria: mockGetLatestByCriteria,
     catchUpSubscribeToEvents: mockCatchUpSubscribeToEvents,
     ping: mockPing,
@@ -408,6 +410,7 @@ describe('EventStoreClient', () => {
             const events = await client.getEvents(request);
             expect(events).toHaveLength(1);
             expect(events[0]).toEqual({
+                writeId: '',
                 eventId: 'test-event-1',
                 eventType: 'TestEvent',
                 data: { test: 'data' },
@@ -430,6 +433,75 @@ describe('EventStoreClient', () => {
             expect(events).toHaveLength(1);
         });
     });
+    describe('write contexts', () => {
+        it('preserves write IDs and exact int64 positions through save, read, and context reuse', async () => {
+            const large = '9223372036854775807';
+            const writeId = `${large}:7`;
+            const query = { criteria: [{ tags: [{ key: '__eventType', value: 'Created' }] }] };
+            mockSaveEventsV2.mockImplementation((request, metadata, callback) => {
+                callback(null, { write_id: writeId, log_position: { commit_position: large, prepare_position: '7' } });
+            });
+            const saved = await client.saveEventsV2({ boundary: 'orders', events: [
+                    { eventId: 'e1', eventType: 'Created', data: { eventType: 'application value' } }
+                ] });
+            expect(saved).toEqual({ writeId, logPosition: { commitPosition: large, preparePosition: 7 } });
+            mockGetWriteContext.mockImplementation((request, metadata, callback) => {
+                callback(null, { write_id: writeId, consistency: [{ query,
+                            position: { commit_position: large, prepare_position: '7' } }] });
+                return { on: jest.fn() };
+            });
+            const context = await client.getWriteContext({ boundary: 'orders', writeId });
+            expect(context).toEqual({ writeId, consistency: [{ query, position: saved.logPosition }] });
+            expect(mockGetWriteContext).toHaveBeenLastCalledWith({ boundary: 'orders', write_id: writeId }, expect.any(Object), expect.any(Function));
+            await client.saveEventsV2({ boundary: 'orders', events: [
+                    { eventId: 'e2', eventType: 'Updated', data: {} }
+                ], consistency: context.consistency });
+            expect(mockSaveEventsV2.mock.calls[mockSaveEventsV2.mock.calls.length - 1][0].consistency[0].position.commit_position).toBe(large);
+            mockGetEvents.mockImplementation((request, metadata, callback) => {
+                callback(null, { events: [{ event_id: 'e1', write_id: writeId, event_type: 'Created',
+                            data: '{"nested":{"__user":1}}', position: { commit_position: large, prepare_position: '7' } }] });
+            });
+            const [event] = await client.getEvents({ boundary: 'orders', count: 1 });
+            expect(event.writeId).toBe(writeId);
+            expect(event.position).toEqual(saved.logPosition);
+            expect(event.data).toEqual({ nested: { __user: 1 } });
+        });
+        it('preserves write IDs and large positions in subscriptions and latest reads', async () => {
+            const raw = { write_id: '9007199254740993:2', event_id: 'e1', event_type: 'Created',
+                data: '{}', position: { commit_position: '9007199254740993', prepare_position: '2' } };
+            mockGetLatestByCriteria.mockImplementation((request, metadata, callback) => callback(null, {
+                results: [{ criterion: request.criteria[0], event: raw }], context_position: raw.position
+            }));
+            const latest = await client.getLatestByCriteria({ boundary: 'orders',
+                criteria: [{ tags: [{ key: '__eventType', value: 'Created' }] }] });
+            expect(latest.results[0].event?.writeId).toBe(raw.write_id);
+            expect(latest.contextPosition.commitPosition).toBe('9007199254740993');
+            mockCatchUpSubscribeToEvents.mockReturnValue({ on: jest.fn(), cancel: jest.fn(),
+                async *[Symbol.asyncIterator]() { yield raw; }
+            });
+            const received = new Promise((resolve, reject) => {
+                client.subscribeToEvents({ boundary: 'orders', subscriberName: 'test' }, async (event) => resolve(event), reject);
+            });
+            const event = await received;
+            expect(event.writeId).toBe(raw.write_id);
+            expect(event.position).toEqual(latest.contextPosition);
+        });
+        it('returns empty observations for unconditional writes', async () => {
+            mockGetWriteContext.mockImplementation((request, metadata, callback) => {
+                callback(null, { write_id: '1:1' });
+            });
+            await expect(client.getWriteContext({ boundary: 'orders', writeId: '1:1' }))
+                .resolves.toEqual({ writeId: '1:1', consistency: [] });
+        });
+        it('validates required fields and preserves server errors', async () => {
+            await expect(client.getWriteContext({ boundary: '', writeId: '1:1' })).rejects.toThrow('Boundary');
+            await expect(client.getWriteContext({ boundary: 'orders', writeId: '' })).rejects.toThrow('write ID');
+            const error = Object.assign(new Error('write context not found'), { code: 5 });
+            mockGetWriteContext.mockImplementation((request, metadata, callback) => callback(error));
+            await expect(client.getWriteContext({ boundary: 'orders', writeId: '1:1' }))
+                .rejects.toMatchObject({ originalError: error, boundary: 'orders', writeId: '1:1' });
+        });
+    });
     describe('getLatestByCriteria', () => {
         it('should retrieve the latest event per criterion with context position', async () => {
             const response = await client.getLatestByCriteria({
@@ -445,6 +517,7 @@ describe('EventStoreClient', () => {
             });
             expect(response.results).toHaveLength(2);
             expect(response.results[0].event).toEqual({
+                writeId: '',
                 eventId: 'acct-1-balance',
                 eventType: 'MoneyCredited',
                 data: { account_id: 'acct-1', balance: 100 },

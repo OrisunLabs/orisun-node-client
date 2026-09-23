@@ -11,6 +11,8 @@ export {
   LatestCriterionResult,
   SubscribeRequest,
   WriteResult,
+  GetWriteContextRequest,
+  WriteContext,
   Position,
   Query,
   Criterion,

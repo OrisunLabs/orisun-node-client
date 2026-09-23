@@ -37,6 +37,11 @@ exports.EventStoreClient = exports.ServerCapability = exports.StorageBackend = e
 const grpc = __importStar(require("@grpc/grpc-js"));
 const protoLoader = __importStar(require("@grpc/proto-loader"));
 const path = __importStar(require("path"));
+// Preserve int64 values outside JavaScript's safe integer range for CCC reuse.
+function positionValue(value) {
+    const number = Number(value);
+    return Number.isSafeInteger(number) ? number : String(value);
+}
 var ValueType;
 (function (ValueType) {
     ValueType["TEXT"] = "TEXT";
@@ -246,14 +251,15 @@ class EventStoreClient {
     }
     mapEvent(event) {
         const position = {
-            commitPosition: Number(event.position?.commit_position || '0'),
-            preparePosition: Number(event.position?.prepare_position || '0')
+            commitPosition: positionValue(event.position?.commit_position || '0'),
+            preparePosition: positionValue(event.position?.prepare_position || '0')
         };
         const dateCreated = event.date_created
             ? new Date(Number(event.date_created.seconds || '0') * 1000 + Math.floor(Number(event.date_created.nanos || 0) / 1000000)).toISOString()
             : new Date().toISOString();
         try {
             return {
+                writeId: event.write_id || '',
                 eventId: event.event_id,
                 eventType: event.event_type,
                 data: JSON.parse(event.data),
@@ -265,6 +271,7 @@ class EventStoreClient {
         catch (parseError) {
             this.logger.error(`Failed to parse event data or metadata: ${parseError.message}`);
             return {
+                writeId: event.write_id || '',
                 eventId: event.event_id,
                 eventType: event.event_type,
                 data: event.data,
@@ -322,9 +329,10 @@ class EventStoreClient {
                 this.setupTokenCaching(call, `${operation} response`);
             });
             return {
+                writeId: response.write_id || '',
                 logPosition: {
-                    commitPosition: Number(response.log_position?.commit_position ?? '0'),
-                    preparePosition: Number(response.log_position?.prepare_position ?? '0')
+                    commitPosition: positionValue(response.log_position?.commit_position ?? '0'),
+                    preparePosition: positionValue(response.log_position?.prepare_position ?? '0')
                 }
             };
         }
@@ -391,6 +399,37 @@ class EventStoreClient {
             }))
         };
         return this.invokeSave('saveEventsV2', grpcRequest, request.events.length);
+    }
+    /** Retrieve the complete observations checked when a write committed. */
+    async getWriteContext(request) {
+        if (this.disposed)
+            throw new Error('Client has been disposed');
+        if (!request?.boundary || !request.writeId) {
+            throw new Error('Boundary and write ID are required');
+        }
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const call = this.client.getWriteContext({ boundary: request.boundary, write_id: request.writeId }, this.createAuthMetadata('get write context'), (error, result) => error ? reject(error) : resolve(result));
+                this.setupTokenCaching(call, 'get write context response');
+            });
+            return {
+                writeId: response.write_id,
+                consistency: (response.consistency || []).map((observation) => ({
+                    query: observation.query,
+                    position: {
+                        commitPosition: positionValue(observation.position.commit_position),
+                        preparePosition: positionValue(observation.position.prepare_position)
+                    }
+                }))
+            };
+        }
+        catch (error) {
+            const enhancedError = new Error(`Failed to get write context: ${error.message}`);
+            enhancedError.originalError = error;
+            enhancedError.boundary = request.boundary;
+            enhancedError.writeId = request.writeId;
+            throw enhancedError;
+        }
     }
     /**
      * Get events from a boundary
@@ -509,8 +548,8 @@ class EventStoreClient {
                     event: result.event && result.event.event_id ? this.mapEvent(result.event) : undefined
                 })),
                 contextPosition: {
-                    commitPosition: Number(response.context_position?.commit_position || '-1'),
-                    preparePosition: Number(response.context_position?.prepare_position || '-1')
+                    commitPosition: positionValue(response.context_position?.commit_position || '-1'),
+                    preparePosition: positionValue(response.context_position?.prepare_position || '-1')
                 }
             };
         }
@@ -586,13 +625,14 @@ class EventStoreClient {
                 for await (const event of stream) {
                     try {
                         const parsedEvent = {
+                            writeId: event.write_id || '',
                             eventId: event.event_id,
                             eventType: event.event_type,
                             data: JSON.parse(event.data),
                             metadata: JSON.parse(event.metadata || '{}'),
                             position: {
-                                commitPosition: Number(event.position?.commit_position || '0'),
-                                preparePosition: Number(event.position?.prepare_position || '0')
+                                commitPosition: positionValue(event.position?.commit_position || '0'),
+                                preparePosition: positionValue(event.position?.prepare_position || '0')
                             },
                             dateCreated: event.date_created ? new Date(Number(event.date_created.seconds) * 1000 + Math.floor(event.date_created.nanos / 1000000)).toISOString() : new Date().toISOString()
                         };

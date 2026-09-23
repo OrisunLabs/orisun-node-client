@@ -1,5 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 export interface Event {
+    /** Empty for historical events without a recorded write context. */
+    writeId: string;
     eventId: string;
     eventType: string;
     data: any;
@@ -14,8 +16,8 @@ export interface EventToSave {
     metadata?: Record<string, any>;
 }
 export interface Position {
-    commitPosition: number;
-    preparePosition: number;
+    commitPosition: number | string;
+    preparePosition: number | string;
 }
 export interface Tag {
     key: string;
@@ -73,7 +75,16 @@ export interface SubscribeRequest {
     boundary: string;
 }
 export interface WriteResult {
+    writeId: string;
     logPosition: Position;
+}
+export interface GetWriteContextRequest {
+    boundary: string;
+    writeId: string;
+}
+export interface WriteContext {
+    writeId: string;
+    consistency: ConsistencyObservation[];
 }
 export declare enum ValueType {
     TEXT = "TEXT",
@@ -247,6 +258,8 @@ export declare class EventStoreClient {
      * Save events after atomically validating every consistency observation.
      */
     saveEventsV2(request: SaveEventsV2Request): Promise<WriteResult>;
+    /** Retrieve the complete observations checked when a write committed. */
+    getWriteContext(request: GetWriteContextRequest): Promise<WriteContext>;
     /**
      * Get events from a boundary
      * @throws {Error} If the request is invalid or the operation fails
