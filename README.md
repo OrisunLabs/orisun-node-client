@@ -206,7 +206,6 @@ name returns `ALREADY_EXISTS`. Placement is backend-specific:
 
 - PostgreSQL: `{ backend: 'postgres', namespace: '<schema>' }`
 - SQLite: `{ backend: 'sqlite', namespace: '<boundary-name>' }`
-- FoundationDB: `{ backend: 'foundationdb', namespace: '<ORISUN_FDB_ROOT>' }`
 
 Failed provisioning is reported through `status === BoundaryStatus.FAILED` and
 `lastError`. The server retries failed definitions independently.

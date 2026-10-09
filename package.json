@@ -5,7 +5,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc && mkdir -p dist/protos/ && cp protos/eventstore.proto dist/protos/ && cp protos/admin.proto dist/protos/",
+    "build": "rm -rf dist && tsc && mkdir -p dist/protos/ && cp protos/eventstore.proto dist/protos/ && cp protos/admin.proto dist/protos/",
     "dev": "ts-node src/index.ts",
     "test": "jest",
     "example": "ts-node examples/basic-usage.ts",
