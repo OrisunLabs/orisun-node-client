@@ -65,7 +65,6 @@ var StorageBackend;
     StorageBackend["UNSPECIFIED"] = "STORAGE_BACKEND_UNSPECIFIED";
     StorageBackend["POSTGRES"] = "STORAGE_BACKEND_POSTGRES";
     StorageBackend["SQLITE"] = "STORAGE_BACKEND_SQLITE";
-    StorageBackend["FOUNDATIONDB"] = "STORAGE_BACKEND_FOUNDATIONDB";
 })(StorageBackend || (exports.StorageBackend = StorageBackend = {}));
 var ServerCapability;
 (function (ServerCapability) {

@@ -906,7 +906,6 @@ export enum StorageBackend {
     STORAGE_BACKEND_UNSPECIFIED = 0,
     STORAGE_BACKEND_POSTGRES = 1,
     STORAGE_BACKEND_SQLITE = 2,
-    STORAGE_BACKEND_FOUNDATIONDB = 3,
 }
 
 export enum ServerCapability {

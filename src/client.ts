@@ -179,8 +179,7 @@ export interface GetIndexResponse {
 export enum StorageBackend {
     UNSPECIFIED = 'STORAGE_BACKEND_UNSPECIFIED',
     POSTGRES = 'STORAGE_BACKEND_POSTGRES',
-    SQLITE = 'STORAGE_BACKEND_SQLITE',
-    FOUNDATIONDB = 'STORAGE_BACKEND_FOUNDATIONDB'
+    SQLITE = 'STORAGE_BACKEND_SQLITE'
 }
 
 export enum ServerCapability {
