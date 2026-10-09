@@ -122,7 +122,6 @@ function parseBoundaryInfo(boundary) {
             namespace: boundary.placement?.namespace || ''
         },
         status: String(boundary.status).replace('BOUNDARY_LIFECYCLE_STATUS_', ''),
-        existedBeforeCatalog: Boolean(boundary.existed_before_catalog),
         lastError: boundary.last_error || '',
         definitionPosition: parseBoundaryPosition(boundary.definition_position),
         statusPosition: parseBoundaryPosition(boundary.status_position)
@@ -655,7 +654,6 @@ class AdminClient {
                 backend: request.placement.backend,
                 namespace: request.placement.namespace
             },
-            existed_before_catalog: request.existedBeforeCatalog || false
         };
         try {
             const metadata = this.createAuthMetadata(operation);

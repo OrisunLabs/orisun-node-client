@@ -134,7 +134,6 @@ message BoundaryInfo {
   string description = 2;
   BoundaryPlacementInput placement = 3;
   BoundaryLifecycleStatus status = 4;
-  bool existed_before_catalog = 5;
   string last_error = 6;
   Position definition_position = 7;
   Position status_position = 8;
@@ -144,8 +143,6 @@ message CreateBoundaryRequest {
   string name = 1;
   string description = 2;
   BoundaryPlacementInput placement = 3;
-  // Set when adopting physical storage that predates the catalog definition.
-  bool existed_before_catalog = 4;
 }
 
 message CreateBoundaryResponse {

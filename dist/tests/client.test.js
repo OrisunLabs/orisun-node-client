@@ -36,7 +36,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const src_1 = require("../src");
 const grpc = __importStar(require("@grpc/grpc-js"));
 // Mock gRPC and protobuf modules
-const mockSaveEvents = jest.fn();
 const mockSaveEventsV2 = jest.fn();
 const mockGetEvents = jest.fn();
 const mockGetWriteContext = jest.fn();
@@ -45,7 +44,6 @@ const mockCatchUpSubscribeToEvents = jest.fn();
 const mockPing = jest.fn();
 const mockGetServerInfo = jest.fn();
 const mockEventStoreClient = {
-    saveEvents: mockSaveEvents,
     saveEventsV2: mockSaveEventsV2,
     getEvents: mockGetEvents,
     getWriteContext: mockGetWriteContext,
@@ -82,15 +80,6 @@ jest.mock('@grpc/proto-loader', () => ({
 }));
 // Setup mock implementations
 beforeEach(() => {
-    mockSaveEvents.mockImplementation((request, metadata, callback) => {
-        callback(null, {
-            log_position: {
-                commit_position: '123',
-                prepare_position: '123'
-            },
-            new_stream_version: '123'
-        });
-    });
     mockSaveEventsV2.mockImplementation((request, metadata, callback) => {
         callback(null, {
             log_position: {
@@ -295,12 +284,7 @@ describe('EventStoreClient', () => {
     describe('saveEvents', () => {
         it('should save events successfully', async () => {
             const request = {
-                query: {
-                    expectedPosition: {
-                        commitPosition: -1,
-                        preparePosition: -1
-                    },
-                },
+                consistency: [],
                 events: [
                     {
                         eventId: 'test-event-1',
@@ -311,26 +295,28 @@ describe('EventStoreClient', () => {
                 ],
                 boundary: 'test-boundary'
             };
-            firstSaveResponse = await client.saveEvents(request);
+            firstSaveResponse = await client.saveEventsV2(request);
             expect(firstSaveResponse).toBeDefined();
             expect(firstSaveResponse.logPosition).toBeDefined();
-            expect(firstSaveResponse.logPosition.commitPosition).toBe(123);
-            expect(firstSaveResponse.logPosition.preparePosition).toBe(123);
+            expect(firstSaveResponse.logPosition.commitPosition).toBe(124);
+            expect(firstSaveResponse.logPosition.preparePosition).toBe(124);
         });
         it('should save events with subsetQuery successfully', async () => {
             const request = {
-                query: {
-                    expectedPosition: firstSaveResponse.logPosition,
-                    subsetQuery: {
-                        criteria: [
-                            {
-                                tags: [
-                                    { key: 'category', value: 'test' }
-                                ]
-                            }
-                        ]
+                consistency: [
+                    {
+                        query: {
+                            criteria: [
+                                {
+                                    tags: [
+                                        { key: 'category', value: 'test' }
+                                    ]
+                                }
+                            ]
+                        },
+                        position: firstSaveResponse.logPosition
                     }
-                },
+                ],
                 events: [
                     {
                         eventId: 'test-event-1',
@@ -341,17 +327,31 @@ describe('EventStoreClient', () => {
                 ],
                 boundary: 'test-boundary'
             };
-            const result = await client.saveEvents(request);
+            const result = await client.saveEventsV2(request);
             expect(result).toBeDefined();
             expect(result.logPosition).toBeDefined();
-            expect(result.logPosition.commitPosition).toBe(123);
-            expect(result.logPosition.preparePosition).toBe(123);
+            expect(result.logPosition.commitPosition).toBe(124);
+            expect(result.logPosition.preparePosition).toBe(124);
             // Verify that the mock was called with the correct subsetQuery field
-            expect(mockSaveEvents).toHaveBeenLastCalledWith(expect.objectContaining({
-                query: expect.objectContaining({
-                    subsetQuery: request.query.subsetQuery
-                })
+            expect(mockSaveEventsV2).toHaveBeenLastCalledWith(expect.objectContaining({
+                consistency: [expect.objectContaining({ query: request.consistency[0].query })]
             }), expect.any(Object), expect.any(Function));
+        });
+    });
+    describe('single-query saveEvents', () => {
+        it('keeps the client shape and sends one canonical observation', async () => {
+            const query = { criteria: [{ tags: [{ key: 'amount', value: '10', operator: 'gte' }] }] };
+            const position = { commitPosition: 7, preparePosition: 3 };
+            await client.saveEvents({ boundary: 'orders', events: [{ eventId: 'one', eventType: 'Created', data: { amount: 10 } }],
+                query: { subsetQuery: query, expectedPosition: position } });
+            expect(mockSaveEventsV2).toHaveBeenLastCalledWith(expect.objectContaining({
+                boundary: 'orders', consistency: [{ query, position: { commit_position: 7, prepare_position: 3 } }]
+            }), expect.any(Object), expect.any(Function));
+        });
+        it('keeps an absent query as an unconditional append', async () => {
+            await client.saveEvents({ boundary: 'orders', events: [{ eventId: 'two', eventType: 'Created', data: {} }],
+                query: { expectedPosition: { commitPosition: 7, preparePosition: 3 } } });
+            expect(mockSaveEventsV2).toHaveBeenLastCalledWith(expect.objectContaining({ consistency: [] }), expect.any(Object), expect.any(Function));
         });
     });
     describe('saveEventsV2', () => {
@@ -651,7 +651,7 @@ describe('EventStoreClient', () => {
     describe('token caching', () => {
         it('should cache token from saveEvents response', async () => {
             // Mock saveEvents to return token in response metadata
-            mockSaveEvents.mockImplementationOnce((request, metadata, callback) => {
+            mockSaveEventsV2.mockImplementationOnce((request, metadata, callback) => {
                 const responseMetadata = {
                     get: jest.fn((key) => {
                         if (key === 'x-auth-token') {
@@ -678,12 +678,7 @@ describe('EventStoreClient', () => {
                 return mockCall;
             });
             const request = {
-                query: {
-                    expectedPosition: {
-                        commitPosition: -1,
-                        preparePosition: -1
-                    },
-                },
+                consistency: [],
                 events: [
                     {
                         eventId: 'test-event-1',
@@ -694,9 +689,9 @@ describe('EventStoreClient', () => {
                 ],
                 boundary: 'test-boundary'
             };
-            await client.saveEvents(request);
+            await client.saveEventsV2(request);
             // Verify next call uses cached token
-            mockSaveEvents.mockImplementationOnce((request, metadata, callback) => {
+            mockSaveEventsV2.mockImplementationOnce((request, metadata, callback) => {
                 expect(metadata.get('x-auth-token')).toContain('save-events-token');
                 callback(null, {
                     log_position: {
@@ -705,7 +700,7 @@ describe('EventStoreClient', () => {
                     }
                 });
             });
-            await client.saveEvents(request);
+            await client.saveEventsV2(request);
         });
         it('should cache token from getEvents response', async () => {
             // Mock getEvents to return token in response metadata
@@ -791,7 +786,7 @@ describe('EventStoreClient', () => {
         });
         it('should use cached token for subscriptions', async () => {
             // First, establish a cached token by calling saveEvents
-            mockSaveEvents.mockImplementationOnce((request, metadata, callback) => {
+            mockSaveEventsV2.mockImplementationOnce((request, metadata, callback) => {
                 const responseMetadata = {
                     get: jest.fn((key) => {
                         if (key === 'x-auth-token') {
@@ -818,12 +813,7 @@ describe('EventStoreClient', () => {
                 return mockCall;
             });
             const saveRequest = {
-                query: {
-                    expectedPosition: {
-                        commitPosition: -1,
-                        preparePosition: -1
-                    },
-                },
+                consistency: [],
                 events: [
                     {
                         eventId: 'test-event-1',
@@ -835,7 +825,7 @@ describe('EventStoreClient', () => {
                 boundary: 'test-boundary'
             };
             // Make the saveEvents call to establish the token
-            await client.saveEvents(saveRequest);
+            await client.saveEventsV2(saveRequest);
             // Now test subscription with cached token
             mockCatchUpSubscribeToEvents.mockImplementationOnce((request, metadata) => {
                 expect(metadata.get('x-auth-token')).toContain('subscription-token');

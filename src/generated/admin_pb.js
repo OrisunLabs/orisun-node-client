@@ -3871,7 +3871,6 @@ proto.orisun.BoundaryInfo.toObject = function(includeInstance, msg) {
     description: jspb.Message.getFieldWithDefault(msg, 2, ""),
     placement: (f = msg.getPlacement()) && proto.orisun.BoundaryPlacementInput.toObject(includeInstance, f),
     status: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    existedBeforeCatalog: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
     lastError: jspb.Message.getFieldWithDefault(msg, 6, ""),
     definitionPosition: (f = msg.getDefinitionPosition()) && eventstore_pb.Position.toObject(includeInstance, f),
     statusPosition: (f = msg.getStatusPosition()) && eventstore_pb.Position.toObject(includeInstance, f)
@@ -3927,10 +3926,6 @@ proto.orisun.BoundaryInfo.deserializeBinaryFromReader = function(msg, reader) {
     case 4:
       var value = /** @type {!proto.orisun.BoundaryLifecycleStatus} */ (reader.readEnum());
       msg.setStatus(value);
-      break;
-    case 5:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setExistedBeforeCatalog(value);
       break;
     case 6:
       var value = /** @type {string} */ (reader.readString());
@@ -4001,13 +3996,6 @@ proto.orisun.BoundaryInfo.serializeBinaryToWriter = function(message, writer) {
   if (f !== 0.0) {
     writer.writeEnum(
       4,
-      f
-    );
-  }
-  f = message.getExistedBeforeCatalog();
-  if (f) {
-    writer.writeBool(
-      5,
       f
     );
   }
@@ -4125,24 +4113,6 @@ proto.orisun.BoundaryInfo.prototype.getStatus = function() {
  */
 proto.orisun.BoundaryInfo.prototype.setStatus = function(value) {
   return jspb.Message.setProto3EnumField(this, 4, value);
-};
-
-
-/**
- * optional bool existed_before_catalog = 5;
- * @return {boolean}
- */
-proto.orisun.BoundaryInfo.prototype.getExistedBeforeCatalog = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 5, false));
-};
-
-
-/**
- * @param {boolean} value
- * @return {!proto.orisun.BoundaryInfo} returns this
- */
-proto.orisun.BoundaryInfo.prototype.setExistedBeforeCatalog = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 
@@ -4272,8 +4242,7 @@ proto.orisun.CreateBoundaryRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     description: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    placement: (f = msg.getPlacement()) && proto.orisun.BoundaryPlacementInput.toObject(includeInstance, f),
-    existedBeforeCatalog: jspb.Message.getBooleanFieldWithDefault(msg, 4, false)
+    placement: (f = msg.getPlacement()) && proto.orisun.BoundaryPlacementInput.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4322,10 +4291,6 @@ proto.orisun.CreateBoundaryRequest.deserializeBinaryFromReader = function(msg, r
       var value = new proto.orisun.BoundaryPlacementInput;
       reader.readMessage(value,proto.orisun.BoundaryPlacementInput.deserializeBinaryFromReader);
       msg.setPlacement(value);
-      break;
-    case 4:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setExistedBeforeCatalog(value);
       break;
     default:
       reader.skipField();
@@ -4376,13 +4341,6 @@ proto.orisun.CreateBoundaryRequest.serializeBinaryToWriter = function(message, w
       3,
       f,
       proto.orisun.BoundaryPlacementInput.serializeBinaryToWriter
-    );
-  }
-  f = message.getExistedBeforeCatalog();
-  if (f) {
-    writer.writeBool(
-      4,
-      f
     );
   }
 };
@@ -4458,24 +4416,6 @@ proto.orisun.CreateBoundaryRequest.prototype.clearPlacement = function() {
  */
 proto.orisun.CreateBoundaryRequest.prototype.hasPlacement = function() {
   return jspb.Message.getField(this, 3) != null;
-};
-
-
-/**
- * optional bool existed_before_catalog = 4;
- * @return {boolean}
- */
-proto.orisun.CreateBoundaryRequest.prototype.getExistedBeforeCatalog = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
-};
-
-
-/**
- * @param {boolean} value
- * @return {!proto.orisun.CreateBoundaryRequest} returns this
- */
-proto.orisun.CreateBoundaryRequest.prototype.setExistedBeforeCatalog = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 4, value);
 };
 
 

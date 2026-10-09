@@ -7,7 +7,7 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 
-export class Position extends jspb.Message {
+export class Position extends jspb.Message { 
     getCommitPosition(): number;
     setCommitPosition(value: number): Position;
     getPreparePosition(): number;
@@ -30,11 +30,13 @@ export namespace Position {
     }
 }
 
-export class Tag extends jspb.Message {
+export class Tag extends jspb.Message { 
     getKey(): string;
     setKey(value: string): Tag;
     getValue(): string;
     setValue(value: string): Tag;
+    getOperator(): string;
+    setOperator(value: string): Tag;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Tag.AsObject;
@@ -50,10 +52,11 @@ export namespace Tag {
     export type AsObject = {
         key: string,
         value: string,
+        operator: string,
     }
 }
 
-export class Criterion extends jspb.Message {
+export class Criterion extends jspb.Message { 
     clearTagsList(): void;
     getTagsList(): Array<Tag>;
     setTagsList(value: Array<Tag>): Criterion;
@@ -75,7 +78,7 @@ export namespace Criterion {
     }
 }
 
-export class Query extends jspb.Message {
+export class Query extends jspb.Message { 
     clearCriteriaList(): void;
     getCriteriaList(): Array<Criterion>;
     setCriteriaList(value: Array<Criterion>): Query;
@@ -97,7 +100,7 @@ export namespace Query {
     }
 }
 
-export class EventToSave extends jspb.Message {
+export class EventToSave extends jspb.Message { 
     getEventId(): string;
     setEventId(value: string): EventToSave;
     getEventType(): string;
@@ -126,7 +129,7 @@ export namespace EventToSave {
     }
 }
 
-export class Event extends jspb.Message {
+export class Event extends jspb.Message { 
     getEventId(): string;
     setEventId(value: string): Event;
     getEventType(): string;
@@ -170,7 +173,7 @@ export namespace Event {
     }
 }
 
-export class WriteResult extends jspb.Message {
+export class WriteResult extends jspb.Message { 
 
     hasLogPosition(): boolean;
     clearLogPosition(): void;
@@ -196,36 +199,7 @@ export namespace WriteResult {
     }
 }
 
-export class SaveQuery extends jspb.Message {
-
-    hasExpectedPosition(): boolean;
-    clearExpectedPosition(): void;
-    getExpectedPosition(): Position | undefined;
-    setExpectedPosition(value?: Position): SaveQuery;
-
-    hasSubsetquery(): boolean;
-    clearSubsetquery(): void;
-    getSubsetquery(): Query | undefined;
-    setSubsetquery(value?: Query): SaveQuery;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): SaveQuery.AsObject;
-    static toObject(includeInstance: boolean, msg: SaveQuery): SaveQuery.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: SaveQuery, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): SaveQuery;
-    static deserializeBinaryFromReader(message: SaveQuery, reader: jspb.BinaryReader): SaveQuery;
-}
-
-export namespace SaveQuery {
-    export type AsObject = {
-        expectedPosition?: Position.AsObject,
-        subsetquery?: Query.AsObject,
-    }
-}
-
-export class ConsistencyObservation extends jspb.Message {
+export class ConsistencyObservation extends jspb.Message { 
 
     hasQuery(): boolean;
     clearQuery(): void;
@@ -254,7 +228,36 @@ export namespace ConsistencyObservation {
     }
 }
 
-export class SaveEventsRequest extends jspb.Message {
+export class SaveQuery extends jspb.Message { 
+
+    hasExpectedPosition(): boolean;
+    clearExpectedPosition(): void;
+    getExpectedPosition(): Position | undefined;
+    setExpectedPosition(value?: Position): SaveQuery;
+
+    hasSubsetquery(): boolean;
+    clearSubsetquery(): void;
+    getSubsetquery(): Query | undefined;
+    setSubsetquery(value?: Query): SaveQuery;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SaveQuery.AsObject;
+    static toObject(includeInstance: boolean, msg: SaveQuery): SaveQuery.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SaveQuery, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SaveQuery;
+    static deserializeBinaryFromReader(message: SaveQuery, reader: jspb.BinaryReader): SaveQuery;
+}
+
+export namespace SaveQuery {
+    export type AsObject = {
+        expectedPosition?: Position.AsObject,
+        subsetquery?: Query.AsObject,
+    }
+}
+
+export class SaveEventsRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): SaveEventsRequest;
 
@@ -285,7 +288,7 @@ export namespace SaveEventsRequest {
     }
 }
 
-export class SaveEventsV2Request extends jspb.Message {
+export class SaveEventsV2Request extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): SaveEventsV2Request;
     clearEventsList(): void;
@@ -315,7 +318,7 @@ export namespace SaveEventsV2Request {
     }
 }
 
-export class GetWriteContextRequest extends jspb.Message {
+export class GetWriteContextRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): GetWriteContextRequest;
     getWriteId(): string;
@@ -338,7 +341,7 @@ export namespace GetWriteContextRequest {
     }
 }
 
-export class WriteContext extends jspb.Message {
+export class WriteContext extends jspb.Message { 
     getWriteId(): string;
     setWriteId(value: string): WriteContext;
     clearConsistencyList(): void;
@@ -363,7 +366,7 @@ export namespace WriteContext {
     }
 }
 
-export class GetEventsRequest extends jspb.Message {
+export class GetEventsRequest extends jspb.Message { 
 
     hasQuery(): boolean;
     clearQuery(): void;
@@ -401,7 +404,7 @@ export namespace GetEventsRequest {
     }
 }
 
-export class GetEventsResponse extends jspb.Message {
+export class GetEventsResponse extends jspb.Message { 
     clearEventsList(): void;
     getEventsList(): Array<Event>;
     setEventsList(value: Array<Event>): GetEventsResponse;
@@ -423,7 +426,7 @@ export namespace GetEventsResponse {
     }
 }
 
-export class CatchUpSubscribeToEventStoreRequest extends jspb.Message {
+export class CatchUpSubscribeToEventStoreRequest extends jspb.Message { 
 
     hasAfterPosition(): boolean;
     clearAfterPosition(): void;
@@ -458,7 +461,7 @@ export namespace CatchUpSubscribeToEventStoreRequest {
     }
 }
 
-export class PingRequest extends jspb.Message {
+export class PingRequest extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PingRequest.AsObject;
@@ -475,7 +478,7 @@ export namespace PingRequest {
     }
 }
 
-export class PingResponse extends jspb.Message {
+export class PingResponse extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PingResponse.AsObject;
@@ -492,7 +495,7 @@ export namespace PingResponse {
     }
 }
 
-export class GetServerInfoRequest extends jspb.Message {
+export class GetServerInfoRequest extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetServerInfoRequest.AsObject;
@@ -509,7 +512,7 @@ export namespace GetServerInfoRequest {
     }
 }
 
-export class GetServerInfoResponse extends jspb.Message {
+export class GetServerInfoResponse extends jspb.Message { 
     getVersion(): string;
     setVersion(value: string): GetServerInfoResponse;
     getGitCommit(): string;
@@ -546,7 +549,7 @@ export namespace GetServerInfoResponse {
     }
 }
 
-export class GetLatestByCriteriaRequest extends jspb.Message {
+export class GetLatestByCriteriaRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): GetLatestByCriteriaRequest;
     clearCriteriaList(): void;
@@ -571,7 +574,7 @@ export namespace GetLatestByCriteriaRequest {
     }
 }
 
-export class LatestCriterionResult extends jspb.Message {
+export class LatestCriterionResult extends jspb.Message { 
 
     hasCriterion(): boolean;
     clearCriterion(): void;
@@ -600,7 +603,7 @@ export namespace LatestCriterionResult {
     }
 }
 
-export class GetLatestByCriteriaResponse extends jspb.Message {
+export class GetLatestByCriteriaResponse extends jspb.Message { 
     clearResultsList(): void;
     getResultsList(): Array<LatestCriterionResult>;
     setResultsList(value: Array<LatestCriterionResult>): GetLatestByCriteriaResponse;
@@ -628,7 +631,7 @@ export namespace GetLatestByCriteriaResponse {
     }
 }
 
-export class IndexField extends jspb.Message {
+export class IndexField extends jspb.Message { 
     getJsonKey(): string;
     setJsonKey(value: string): IndexField;
     getValueType(): ValueType;
@@ -651,7 +654,7 @@ export namespace IndexField {
     }
 }
 
-export class IndexCondition extends jspb.Message {
+export class IndexCondition extends jspb.Message { 
     getKey(): string;
     setKey(value: string): IndexCondition;
     getOperator(): string;
@@ -677,7 +680,7 @@ export namespace IndexCondition {
     }
 }
 
-export class CreateIndexRequest extends jspb.Message {
+export class CreateIndexRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): CreateIndexRequest;
     getName(): string;
@@ -713,7 +716,7 @@ export namespace CreateIndexRequest {
     }
 }
 
-export class CreateIndexResponse extends jspb.Message {
+export class CreateIndexResponse extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): CreateIndexResponse.AsObject;
@@ -730,7 +733,7 @@ export namespace CreateIndexResponse {
     }
 }
 
-export class DropIndexRequest extends jspb.Message {
+export class DropIndexRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): DropIndexRequest;
     getName(): string;
@@ -753,7 +756,7 @@ export namespace DropIndexRequest {
     }
 }
 
-export class DropIndexResponse extends jspb.Message {
+export class DropIndexResponse extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): DropIndexResponse.AsObject;
@@ -770,7 +773,7 @@ export namespace DropIndexResponse {
     }
 }
 
-export class IndexDefinition extends jspb.Message {
+export class IndexDefinition extends jspb.Message { 
     getName(): string;
     setName(value: string): IndexDefinition;
     clearFieldsList(): void;
@@ -806,7 +809,7 @@ export namespace IndexDefinition {
     }
 }
 
-export class ListIndexesRequest extends jspb.Message {
+export class ListIndexesRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): ListIndexesRequest;
 
@@ -826,7 +829,7 @@ export namespace ListIndexesRequest {
     }
 }
 
-export class ListIndexesResponse extends jspb.Message {
+export class ListIndexesResponse extends jspb.Message { 
     clearIndexesList(): void;
     getIndexesList(): Array<IndexDefinition>;
     setIndexesList(value: Array<IndexDefinition>): ListIndexesResponse;
@@ -848,7 +851,7 @@ export namespace ListIndexesResponse {
     }
 }
 
-export class GetIndexRequest extends jspb.Message {
+export class GetIndexRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): GetIndexRequest;
     getName(): string;
@@ -871,7 +874,7 @@ export namespace GetIndexRequest {
     }
 }
 
-export class GetIndexResponse extends jspb.Message {
+export class GetIndexResponse extends jspb.Message { 
 
     hasIndex(): boolean;
     clearIndex(): void;

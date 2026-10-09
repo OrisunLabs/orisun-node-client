@@ -22,6 +22,7 @@ export interface Position {
 export interface Tag {
     key: string;
     value: string;
+    operator?: string;
 }
 export interface Criterion {
     tags: Tag[];
@@ -29,7 +30,7 @@ export interface Criterion {
 export interface Query {
     criteria: Criterion[];
 }
-/** @deprecated Use SaveEventsV2Request. */
+/** Save a batch with one optional content-query condition. */
 export interface SaveEventsRequest {
     boundary: string;
     query: {
@@ -247,12 +248,7 @@ export declare class EventStoreClient {
     private validateSaveRequest;
     private grpcEvents;
     private invokeSave;
-    /**
-     * Save events to a boundary.
-     * @deprecated Use saveEventsV2.
-     * @throws {Error} If the request is invalid or the operation fails
-     * @returns {Promise<WriteResult>} The write result containing the log position
-     */
+    /** Save a batch using the single-query client API. */
     saveEvents(request: SaveEventsRequest): Promise<WriteResult>;
     /**
      * Save events after atomically validating every consistency observation.

@@ -8,7 +8,7 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as eventstore_pb from "./eventstore_pb";
 
-export class BoundaryPermissionGrant extends jspb.Message {
+export class BoundaryPermissionGrant extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): BoundaryPermissionGrant;
     clearPermissionsList(): void;
@@ -33,7 +33,7 @@ export namespace BoundaryPermissionGrant {
     }
 }
 
-export class AdminUser extends jspb.Message {
+export class AdminUser extends jspb.Message { 
     getUserId(): string;
     setUserId(value: string): AdminUser;
     getName(): string;
@@ -81,7 +81,7 @@ export namespace AdminUser {
     }
 }
 
-export class CreateUserRequest extends jspb.Message {
+export class CreateUserRequest extends jspb.Message { 
     getName(): string;
     setName(value: string): CreateUserRequest;
     getUsername(): string;
@@ -117,7 +117,7 @@ export namespace CreateUserRequest {
     }
 }
 
-export class CreateUserResponse extends jspb.Message {
+export class CreateUserResponse extends jspb.Message { 
 
     hasUser(): boolean;
     clearUser(): void;
@@ -140,7 +140,7 @@ export namespace CreateUserResponse {
     }
 }
 
-export class DeleteUserRequest extends jspb.Message {
+export class DeleteUserRequest extends jspb.Message { 
     getUserId(): string;
     setUserId(value: string): DeleteUserRequest;
 
@@ -160,7 +160,7 @@ export namespace DeleteUserRequest {
     }
 }
 
-export class DeleteUserResponse extends jspb.Message {
+export class DeleteUserResponse extends jspb.Message { 
     getSuccess(): boolean;
     setSuccess(value: boolean): DeleteUserResponse;
 
@@ -180,7 +180,7 @@ export namespace DeleteUserResponse {
     }
 }
 
-export class ChangePasswordRequest extends jspb.Message {
+export class ChangePasswordRequest extends jspb.Message { 
     getUserId(): string;
     setUserId(value: string): ChangePasswordRequest;
     getCurrentPassword(): string;
@@ -206,7 +206,7 @@ export namespace ChangePasswordRequest {
     }
 }
 
-export class ChangePasswordResponse extends jspb.Message {
+export class ChangePasswordResponse extends jspb.Message { 
     getSuccess(): boolean;
     setSuccess(value: boolean): ChangePasswordResponse;
 
@@ -226,7 +226,7 @@ export namespace ChangePasswordResponse {
     }
 }
 
-export class SetUserBoundaryPermissionsRequest extends jspb.Message {
+export class SetUserBoundaryPermissionsRequest extends jspb.Message { 
     getUserId(): string;
     setUserId(value: string): SetUserBoundaryPermissionsRequest;
     getBoundary(): string;
@@ -254,7 +254,7 @@ export namespace SetUserBoundaryPermissionsRequest {
     }
 }
 
-export class SetUserBoundaryPermissionsResponse extends jspb.Message {
+export class SetUserBoundaryPermissionsResponse extends jspb.Message { 
 
     hasUser(): boolean;
     clearUser(): void;
@@ -277,7 +277,7 @@ export namespace SetUserBoundaryPermissionsResponse {
     }
 }
 
-export class ListUsersRequest extends jspb.Message {
+export class ListUsersRequest extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ListUsersRequest.AsObject;
@@ -294,7 +294,7 @@ export namespace ListUsersRequest {
     }
 }
 
-export class ListUsersResponse extends jspb.Message {
+export class ListUsersResponse extends jspb.Message { 
     clearUsersList(): void;
     getUsersList(): Array<AdminUser>;
     setUsersList(value: Array<AdminUser>): ListUsersResponse;
@@ -316,7 +316,7 @@ export namespace ListUsersResponse {
     }
 }
 
-export class ValidateCredentialsRequest extends jspb.Message {
+export class ValidateCredentialsRequest extends jspb.Message { 
     getUsername(): string;
     setUsername(value: string): ValidateCredentialsRequest;
     getPassword(): string;
@@ -339,7 +339,7 @@ export namespace ValidateCredentialsRequest {
     }
 }
 
-export class ValidateCredentialsResponse extends jspb.Message {
+export class ValidateCredentialsResponse extends jspb.Message { 
     getSuccess(): boolean;
     setSuccess(value: boolean): ValidateCredentialsResponse;
 
@@ -365,7 +365,7 @@ export namespace ValidateCredentialsResponse {
     }
 }
 
-export class GetUserCountRequest extends jspb.Message {
+export class GetUserCountRequest extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetUserCountRequest.AsObject;
@@ -382,7 +382,7 @@ export namespace GetUserCountRequest {
     }
 }
 
-export class GetUserCountResponse extends jspb.Message {
+export class GetUserCountResponse extends jspb.Message { 
     getCount(): number;
     setCount(value: number): GetUserCountResponse;
 
@@ -402,7 +402,7 @@ export namespace GetUserCountResponse {
     }
 }
 
-export class GetEventCountRequest extends jspb.Message {
+export class GetEventCountRequest extends jspb.Message { 
     getBoundary(): string;
     setBoundary(value: string): GetEventCountRequest;
 
@@ -422,7 +422,7 @@ export namespace GetEventCountRequest {
     }
 }
 
-export class GetEventCountResponse extends jspb.Message {
+export class GetEventCountResponse extends jspb.Message { 
     getCount(): number;
     setCount(value: number): GetEventCountResponse;
 
@@ -442,7 +442,7 @@ export namespace GetEventCountResponse {
     }
 }
 
-export class BoundaryPlacementInput extends jspb.Message {
+export class BoundaryPlacementInput extends jspb.Message { 
     getBackend(): string;
     setBackend(value: string): BoundaryPlacementInput;
     getNamespace(): string;
@@ -465,7 +465,7 @@ export namespace BoundaryPlacementInput {
     }
 }
 
-export class BoundaryInfo extends jspb.Message {
+export class BoundaryInfo extends jspb.Message { 
     getName(): string;
     setName(value: string): BoundaryInfo;
     getDescription(): string;
@@ -477,8 +477,6 @@ export class BoundaryInfo extends jspb.Message {
     setPlacement(value?: BoundaryPlacementInput): BoundaryInfo;
     getStatus(): BoundaryLifecycleStatus;
     setStatus(value: BoundaryLifecycleStatus): BoundaryInfo;
-    getExistedBeforeCatalog(): boolean;
-    setExistedBeforeCatalog(value: boolean): BoundaryInfo;
     getLastError(): string;
     setLastError(value: string): BoundaryInfo;
 
@@ -508,14 +506,13 @@ export namespace BoundaryInfo {
         description: string,
         placement?: BoundaryPlacementInput.AsObject,
         status: BoundaryLifecycleStatus,
-        existedBeforeCatalog: boolean,
         lastError: string,
         definitionPosition?: eventstore_pb.Position.AsObject,
         statusPosition?: eventstore_pb.Position.AsObject,
     }
 }
 
-export class CreateBoundaryRequest extends jspb.Message {
+export class CreateBoundaryRequest extends jspb.Message { 
     getName(): string;
     setName(value: string): CreateBoundaryRequest;
     getDescription(): string;
@@ -525,8 +522,6 @@ export class CreateBoundaryRequest extends jspb.Message {
     clearPlacement(): void;
     getPlacement(): BoundaryPlacementInput | undefined;
     setPlacement(value?: BoundaryPlacementInput): CreateBoundaryRequest;
-    getExistedBeforeCatalog(): boolean;
-    setExistedBeforeCatalog(value: boolean): CreateBoundaryRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): CreateBoundaryRequest.AsObject;
@@ -543,11 +538,10 @@ export namespace CreateBoundaryRequest {
         name: string,
         description: string,
         placement?: BoundaryPlacementInput.AsObject,
-        existedBeforeCatalog: boolean,
     }
 }
 
-export class CreateBoundaryResponse extends jspb.Message {
+export class CreateBoundaryResponse extends jspb.Message { 
 
     hasBoundary(): boolean;
     clearBoundary(): void;
@@ -570,7 +564,7 @@ export namespace CreateBoundaryResponse {
     }
 }
 
-export class ListBoundariesRequest extends jspb.Message {
+export class ListBoundariesRequest extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ListBoundariesRequest.AsObject;
@@ -587,7 +581,7 @@ export namespace ListBoundariesRequest {
     }
 }
 
-export class ListBoundariesResponse extends jspb.Message {
+export class ListBoundariesResponse extends jspb.Message { 
     clearBoundariesList(): void;
     getBoundariesList(): Array<BoundaryInfo>;
     setBoundariesList(value: Array<BoundaryInfo>): ListBoundariesResponse;
@@ -609,7 +603,7 @@ export namespace ListBoundariesResponse {
     }
 }
 
-export class GetBoundaryRequest extends jspb.Message {
+export class GetBoundaryRequest extends jspb.Message { 
     getName(): string;
     setName(value: string): GetBoundaryRequest;
 
@@ -629,7 +623,7 @@ export namespace GetBoundaryRequest {
     }
 }
 
-export class GetBoundaryResponse extends jspb.Message {
+export class GetBoundaryResponse extends jspb.Message { 
 
     hasBoundary(): boolean;
     clearBoundary(): void;

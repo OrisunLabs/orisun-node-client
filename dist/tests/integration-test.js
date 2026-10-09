@@ -27,12 +27,7 @@ async function testTokenCaching() {
         // console.log('✅ Second ping successful\n');
         console.log('3️⃣  Testing saveEvents (should use cached token)...');
         const saveRequest = {
-            query: {
-                expectedPosition: {
-                    commitPosition: -1,
-                    preparePosition: -1
-                },
-            },
+            consistency: [],
             events: [
                 {
                     eventId: (0, crypto_1.randomUUID)(),
@@ -43,7 +38,7 @@ async function testTokenCaching() {
             ],
             boundary: 'orisun_admin'
         };
-        const saveResult = await client.saveEvents(saveRequest);
+        const saveResult = await client.saveEventsV2(saveRequest);
         console.log('✅ Save events successful');
         console.log(`📍 Log position: ${JSON.stringify(saveResult.logPosition)}\n`);
         console.log('4️⃣  Testing getEvents (should use cached token)...');

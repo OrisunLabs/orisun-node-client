@@ -143,7 +143,6 @@ export interface BoundaryInfo {
     description: string;
     placement: BoundaryPlacement;
     status: BoundaryStatus;
-    existedBeforeCatalog: boolean;
     lastError: string;
     definitionPosition?: BoundaryPosition;
     statusPosition?: BoundaryPosition;
@@ -152,7 +151,6 @@ export interface CreateBoundaryRequest {
     name: string;
     description?: string;
     placement: BoundaryPlacement;
-    existedBeforeCatalog?: boolean;
 }
 export interface CreateBoundaryResponse {
     boundary: BoundaryInfo;

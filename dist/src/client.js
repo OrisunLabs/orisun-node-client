@@ -345,28 +345,18 @@ class EventStoreClient {
             throw enhancedError;
         }
     }
-    /**
-     * Save events to a boundary.
-     * @deprecated Use saveEventsV2.
-     * @throws {Error} If the request is invalid or the operation fails
-     * @returns {Promise<WriteResult>} The write result containing the log position
-     */
+    /** Save a batch using the single-query client API. */
     async saveEvents(request) {
         this.validateSaveRequest(request, 'SaveEventsRequest');
-        this.logger.debug(`Saving ${request.events.length} events`);
-        // Try using plain object approach instead of generated protobuf classes
-        const grpcRequest = {
+        const query = request.query?.subsetQuery;
+        return this.saveEventsV2({
             boundary: request.boundary,
-            query: {
-                expected_position: request.query.expectedPosition ? {
-                    commit_position: request.query.expectedPosition.commitPosition,
-                    prepare_position: request.query.expectedPosition.preparePosition
-                } : null,
-                ...(request.query.subsetQuery && { subsetQuery: request.query.subsetQuery })
-            },
-            events: this.grpcEvents(request.events)
-        };
-        return this.invokeSave('saveEvents', grpcRequest, request.events.length);
+            events: request.events,
+            consistency: query?.criteria?.length ? [{
+                    query,
+                    position: request.query.expectedPosition || { commitPosition: -1, preparePosition: -1 }
+                }] : []
+        });
     }
     /**
      * Save events after atomically validating every consistency observation.

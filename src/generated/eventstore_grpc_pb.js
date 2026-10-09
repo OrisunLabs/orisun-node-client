@@ -213,17 +213,6 @@ function deserialize_orisun_PingResponse(buffer_arg) {
   return eventstore_pb.PingResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_orisun_SaveEventsRequest(arg) {
-  if (!(arg instanceof eventstore_pb.SaveEventsRequest)) {
-    throw new Error('Expected argument of type orisun.SaveEventsRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_orisun_SaveEventsRequest(buffer_arg) {
-  return eventstore_pb.SaveEventsRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_orisun_SaveEventsV2Request(arg) {
   if (!(arg instanceof eventstore_pb.SaveEventsV2Request)) {
     throw new Error('Expected argument of type orisun.SaveEventsV2Request');
@@ -259,19 +248,6 @@ function deserialize_orisun_WriteResult(buffer_arg) {
 
 
 var EventStoreService = exports['orisun.EventStore'] = {
-  // Deprecated compatibility RPC. The server translates this request into one
-// SaveEventsV2 operation.
-saveEvents: {
-    path: '/orisun.EventStore/SaveEvents',
-    requestStream: false,
-    responseStream: false,
-    requestType: eventstore_pb.SaveEventsRequest,
-    responseType: eventstore_pb.WriteResult,
-    requestSerialize: serialize_orisun_SaveEventsRequest,
-    requestDeserialize: deserialize_orisun_SaveEventsRequest,
-    responseSerialize: serialize_orisun_WriteResult,
-    responseDeserialize: deserialize_orisun_WriteResult,
-  },
   // Atomically validate every query-level observation and append the event
 // batch. An empty consistency list is an unconditional append.
 saveEventsV2: {

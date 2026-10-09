@@ -227,13 +227,12 @@ beforeEach(() => {
         callback(null, { count: '100' });
         return mockCall;
     });
-    const boundaryResponse = (existedBeforeCatalog) => ({
+    const boundaryResponse = () => ({
         boundary: {
             name: 'sales',
             description: 'Sales domain',
             placement: { backend: 'postgres', namespace: 'tenant_data' },
             status: 'BOUNDARY_LIFECYCLE_STATUS_PROVISIONING',
-            existed_before_catalog: existedBeforeCatalog,
             last_error: '',
             definition_position: { commit_position: '12', prepare_position: '13' },
             status_position: { commit_position: '12', prepare_position: '13' }
@@ -241,15 +240,15 @@ beforeEach(() => {
     });
     const boundaryCall = () => ({ on: jest.fn() });
     mockCreateBoundary.mockImplementation((request, metadata, callback) => {
-        callback(null, boundaryResponse(request.existed_before_catalog));
+        callback(null, boundaryResponse());
         return boundaryCall();
     });
     mockListBoundaries.mockImplementation((request, metadata, callback) => {
-        callback(null, { boundaries: [boundaryResponse(false).boundary] });
+        callback(null, { boundaries: [boundaryResponse().boundary] });
         return boundaryCall();
     });
     mockGetBoundary.mockImplementation((request, metadata, callback) => {
-        callback(null, boundaryResponse(false));
+        callback(null, boundaryResponse());
         return boundaryCall();
     });
 });
@@ -272,18 +271,14 @@ describe('AdminClient', () => {
             });
             expect(mockCreateBoundary).toHaveBeenCalled();
             expect(response.boundary.status).toBe('PROVISIONING');
-            expect(response.boundary.existedBeforeCatalog).toBe(false);
             expect(response.boundary.definitionPosition).toEqual({ commitPosition: 12, preparePosition: 13 });
         });
         it('records when physical storage predates the catalog', async () => {
             const response = await client.createBoundary({
                 name: 'sales',
                 placement: { backend: 'postgres', namespace: 'tenant_data' },
-                existedBeforeCatalog: true
             });
             const lastCall = mockCreateBoundary.mock.calls[mockCreateBoundary.mock.calls.length - 1];
-            expect(lastCall[0].existed_before_catalog).toBe(true);
-            expect(response.boundary.existedBeforeCatalog).toBe(true);
         });
         it('validates boundary placement locally', async () => {
             await expect(client.createBoundary({ name: 'sales', placement: { backend: '', namespace: '' } }))
